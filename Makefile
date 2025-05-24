@@ -1,12 +1,16 @@
 .PHONY: start start-dev test lint format clean
 
+setup:
+	pip install -r requirements.txt
+	pip install -r requirements.development.txt
+
 # Start the application in production mode
 start:
-	uvicorn app.main:app --host 0.0.0.0 --port 8000
+	uvicorn src.main:app --host 0.0.0.0 --port 8000
 
 # Start the application in development mode with auto-reload
 start-dev:
-	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
 # Run tests with coverage
 test:
