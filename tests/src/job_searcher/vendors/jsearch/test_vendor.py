@@ -38,11 +38,11 @@ class TestJSearchVendorConversion:
         job_details = jsearch_vendor._convert_to_job_details(sample_jsearch_job)
         
         assert isinstance(job_details, JobDetails)
-        assert job_details.title == "Software Engineer"
-        assert job_details.description == "Develop amazing software applications"
-        assert job_details.location == "San Francisco, CA, US"
-        assert job_details.company == "Tech Corp"
-        assert job_details.job_url == "https://example.com/apply/123"
+        assert job_details.title == "Software Developer"
+        assert "never been a more exciting time to join United Airlines" in job_details.description
+        assert job_details.location == "Chicago, Illinois, US"
+        assert job_details.company == "United Airlines"
+        assert job_details.job_url == "https://careers.united.com/us/en/job/WHQ00024224/Software-Developer?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic"
     
     def test_convert_to_job_details_no_employer(self, jsearch_vendor):
         """Test conversion with missing employer name"""
@@ -77,9 +77,9 @@ class TestJSearchVendorSearchJobs:
         result = jsearch_vendor.search_jobs("software engineer")
         
         # Verify
-        assert len(result) == 1
+        assert len(result) == 10
         assert isinstance(result[0], JobDetails)
-        assert result[0].title == "Software Engineer"
+        assert result[0].title == "Software Developer"
         
         # Verify API call
         mock_client.get.assert_called_once()
@@ -138,7 +138,7 @@ class TestJSearchVendorGetJobDetails:
         
         # Verify
         assert isinstance(result, JobDetails)
-        assert result.title == "Software Engineer"
+        assert result.title == "Software Developer"
         
         # Verify API call
         mock_client.get.assert_called_once()

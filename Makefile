@@ -1,8 +1,19 @@
-.PHONY: start start-dev test lint format clean
+.PHONY: start start-dev test lint format clean pre-commit-install pre-commit-run pre-commit-all
 
 setup:
 	pip install -r requirements.txt
 	pip install -r requirements.development.txt
+	pre-commit install
+
+# Pre-commit setup and commands
+pre-commit-install:
+	pre-commit install
+
+pre-commit-run:
+	pre-commit run
+
+pre-commit-all:
+	pre-commit run --all-files
 
 # Start the application in production mode
 start:
