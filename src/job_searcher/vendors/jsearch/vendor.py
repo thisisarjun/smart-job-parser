@@ -1,9 +1,9 @@
 import os
 from typing import List, Optional
 import httpx
-from ...interface import JobSearchVendor
-from ...models import JobDetails
-from .models import Job as JSearchJob, SearchParams, SearchResponse
+from src.job_searcher.interface import JobSearchVendor
+from src.job_searcher.models import JobDetails
+from src.job_searcher.vendors.jsearch.models import Job as JSearchJob, SearchParams, SearchResponse
 
 
 class JSearchVendor(JobSearchVendor):
