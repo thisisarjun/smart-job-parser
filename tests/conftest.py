@@ -43,3 +43,30 @@ def mock_httpx_response():
     mock_response = Mock()
     mock_response.raise_for_status.return_value = None
     return mock_response
+
+
+# Text processing fixtures
+@pytest.fixture
+def sample_text():
+    """Sample text for testing text processing functions"""
+    return "This is a sample text. " * 100  # Creates a longer text for splitting
+
+
+@pytest.fixture
+def short_text():
+    """Short text that shouldn't be split"""
+    return "This is a short text that fits in one chunk."
+
+
+@pytest.fixture
+def empty_text():
+    """Empty text for edge case testing"""
+    return ""
+
+
+@pytest.fixture
+def mock_ollama_embeddings():
+    """Mock OllamaEmbeddings for testing embed_text function"""
+    mock_embeddings = Mock()
+    mock_embeddings.embed_query.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Sample embedding vector
+    return mock_embeddings
