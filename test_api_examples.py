@@ -28,7 +28,7 @@ def test_api_connection():
 
 def test_process_text():
     """Test the text processing endpoint"""
-    print("\n⚙️ Testing Text Processing (Split + Embed)...")
+    print("\n⚙️ Testing Text Processing (Split + Embed + Search)...")
     
     sample_text = """
     Artificial Intelligence (AI) has revolutionized many aspects of modern life.
@@ -36,28 +36,32 @@ def test_process_text():
     complex problems and improve efficiency. Machine learning, a subset of AI,
     enables systems to learn and improve from experience without being explicitly
     programmed. Natural Language Processing (NLP) is another important area that
-    allows computers to understand and generate human language.
+    allows computers to understand and generate human language. Deep learning
+    techniques use neural networks to process data and make predictions.
     """ * 2
     
     payload = {
         "text": sample_text,
+        "query": "What is machine learning?",
         "chunk_size": 200,
         "chunk_overlap": 40
     }
     
     try:
         print("   Sending request...")
-        response = requests.post(f"{BASE_URL}/process-text", json=payload)
+        response = requests.post(f"{BASE_URL}/text/process", json=payload)
         if response.status_code == 200:
             result = response.json()
-            print(f"✅ Success! Processed text into {result['chunk_count']} chunks with embeddings")
+            print(f"✅ Success! Processed text into {result['chunk_count']} chunks")
             print(f"   Original length: {result['original_length']} characters")
-            print(f"   Each embedding has {len(result['embeddings'][0])} dimensions")
+            print(f"   Found {len(result['search_results'])} relevant chunks")
             
-            # Show chunk previews
-            for i, chunk in enumerate(result['chunks'], 1):
-                preview = chunk[:80] + "..." if len(chunk) > 80 else chunk
-                print(f"   Chunk {i}: {preview}")
+            # Show search results
+            for i, doc in enumerate(result['search_results'], 1):
+                # Handle different document formats from LangChain
+                content = doc.get('page_content', str(doc)) if isinstance(doc, dict) else str(doc)
+                preview = content[:100] + "..." if len(content) > 100 else content
+                print(f"   Result {i}: {preview}")
             
             return True
         else:
@@ -71,12 +75,17 @@ def test_process_text():
 def run_interactive_test():
     """Run an interactive test with user input"""
     print("\n🎯 Interactive Test")
-    print("Enter your own text to test the API:")
+    print("Enter your own text and query to test the API:")
     
     user_text = input("Text to process: ").strip()
     if not user_text:
         print("No text provided, skipping interactive test.")
         return
+    
+    user_query = input("Query to search: ").strip()
+    if not user_query:
+        user_query = "What is this about?"
+        print(f"No query provided, using default: '{user_query}'")
         
     try:
         chunk_size = int(input("Chunk size (default 200): ") or "200")
@@ -87,21 +96,24 @@ def run_interactive_test():
     
     payload = {
         "text": user_text,
+        "query": user_query,
         "chunk_size": chunk_size,
         "chunk_overlap": overlap
     }
     
     try:
-        response = requests.post(f"{BASE_URL}/process-text", json=payload)
+        response = requests.post(f"{BASE_URL}/text/process", json=payload)
         if response.status_code == 200:
             result = response.json()
             print(f"\n✅ Results:")
             print(f"   Chunks: {result['chunk_count']}")
             print(f"   Original length: {result['original_length']}")
-            print(f"   Embedding dimensions: {len(result['embeddings'][0])}")
+            print(f"   Search results: {len(result['search_results'])}")
             
-            for i, chunk in enumerate(result['chunks'], 1):
-                print(f"\n   Chunk {i}: {chunk[:100]}{'...' if len(chunk) > 100 else ''}")
+            print(f"\n   Top results for '{user_query}':")
+            for i, doc in enumerate(result['search_results'], 1):
+                content = doc.get('page_content', str(doc)) if isinstance(doc, dict) else str(doc)
+                print(f"\n   Result {i}: {content[:150]}{'...' if len(content) > 150 else ''}")
         else:
             print(f"❌ Failed: {response.status_code} - {response.text}")
     except Exception as e:
