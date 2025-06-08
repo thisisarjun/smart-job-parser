@@ -1,9 +1,10 @@
 from typing import List
+
 from src.job_searcher.interface import JobSearchVendor
+from src.job_searcher.models import JobDetails
 
 
 class JobSearchService:
-    
     def __init__(self, vendors: List[JobSearchVendor]):
         self.vendors = vendors
 

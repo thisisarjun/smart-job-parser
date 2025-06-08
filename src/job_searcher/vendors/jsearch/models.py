@@ -1,7 +1,7 @@
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class DatePosted(str, Enum):
@@ -28,48 +28,62 @@ class JobRequirement(str, Enum):
 
 class SearchParams(BaseModel):
     """Input parameters for job search"""
+
     query: str = Field(..., description="Search query (job title and location)")
-    page: Optional[int] = Field(1, ge=1, description="Page number")
-    date_posted: Optional[DatePosted] = Field(DatePosted.ALL, description="Filter by posting date")
-    remote_jobs_only: Optional[bool] = Field(False, description="Find remote jobs only")
-    employment_types: Optional[List[EmploymentType]] = Field(None, description="Employment types filter")
-    job_requirements: Optional[List[JobRequirement]] = Field(None, description="Job requirements filter")
-    radius: Optional[int] = Field(None, ge=1, description="Search radius in km")
-    num_pages: Optional[int] = Field(1, ge=1, le=20, description="Number of pages to fetch")
+    page: int = Field(default=1, ge=1, description="Page number")
+    date_posted: DatePosted = Field(
+        default=DatePosted.ALL, description="Filter by posting date"
+    )
+    remote_jobs_only: bool = Field(default=False, description="Find remote jobs only")
+    employment_types: Optional[List[EmploymentType]] = Field(
+        default=None, description="Employment types filter"
+    )
+    job_requirements: Optional[List[JobRequirement]] = Field(
+        default=None, description="Job requirements filter"
+    )
+    radius: Optional[int] = Field(default=None, ge=1, description="Search radius in km")
+    num_pages: int = Field(
+        default=1, ge=1, le=20, description="Number of pages to fetch"
+    )
 
     def to_jsearch_params(self) -> Dict[str, Any]:
         """Convert to JSearch API parameters"""
         params = {"query": self.query}
-        
+
         if self.page:
-            params["page"] = self.page
+            params["page"] = str(self.page)
         if self.date_posted and self.date_posted != DatePosted.ALL:
             params["date_posted"] = self.date_posted.value
         if self.remote_jobs_only:
             params["remote_jobs_only"] = "true"
         if self.employment_types:
-            params["employment_types"] = ",".join([et.value for et in self.employment_types])
+            params["employment_types"] = ",".join(
+                [et.value for et in self.employment_types]
+            )
         if self.job_requirements:
-            params["job_requirements"] = ",".join([jr.value for jr in self.job_requirements])
+            params["job_requirements"] = ",".join(
+                [jr.value for jr in self.job_requirements]
+            )
         if self.radius:
-            params["radius"] = self.radius
+            params["radius"] = str(self.radius)
         if self.num_pages:
-            params["num_pages"] = self.num_pages
-            
+            params["num_pages"] = str(self.num_pages)
+
         return params
 
 
 class Job(BaseModel):
     """JSearch job model representing a job posting"""
+
     # Basic job information
     job_id: str
     job_title: str
     job_description: str
     job_apply_link: str
-    
+
     # Employer information
     employer_name: Optional[str] = None
-    
+
     # Location
     job_city: Optional[str] = None
     job_state: Optional[str] = None
@@ -90,12 +104,13 @@ class Job(BaseModel):
 
 class SearchResponse(BaseModel):
     """Response from job search API"""
+
     status: str
     request_id: str
     parameters: Dict[str, Any]
     data: List[Job]
-    
+
     @property
     def total_jobs(self) -> int:
         """Get total number of jobs returned"""
-        return len(self.data) 
+        return len(self.data)

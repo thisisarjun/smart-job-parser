@@ -9,7 +9,7 @@ include = '\.pyi?$'
 extend-exclude = '''
 # A regex preceded with ^/ will apply only to files and directories
 # in the root of the project.
-^/venv/
+^/(\.venv|venv|__pycache__|\.git|\.pytest_cache|\.tox|\.ruff_cache|\.idea|\.cursor)/
 '''
 
 [tool.isort]
@@ -20,6 +20,52 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 88
+skip_glob = [
+    ".venv/*",
+    "venv/*",
+    "__pycache__/*",
+    ".git/*",
+    ".pytest_cache/*",
+    ".tox/*",
+    ".ruff_cache/*",
+    ".idea/*",
+    ".cursor/*"
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E203",  # whitespace before ':'
+    "W503",  # line break before binary operator
+    "D100",  # Missing docstring in public module
+    "D101",  # Missing docstring in public class
+    "D102",  # Missing docstring in public method
+    "D103",  # Missing docstring in public function
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in __init__
+    "I100",  # Import statements are in the wrong order
+    "I201",  # Missing newline between import groups
+    "E402",  # module level import not at top of file (for sys.path.append cases)
+    "W292",  # no newline at end of file
+]
+per-file-ignores = [
+    "tests/fixtures/*:E501",  # Ignore line length in fixture files
+]
+exclude = [
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    ".pytest_cache",
+    ".tox",
+    ".ruff_cache",
+    ".idea",
+    ".cursor",
+    "build",
+    "dist",
+    "*.egg-info"
+]
 
 [tool.mypy]
 python_version = "3.9"
@@ -34,6 +80,19 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+exclude = [
+    ".venv/",
+    "venv/",
+    "__pycache__/",
+    ".git/",
+    ".pytest_cache/",
+    ".tox/",
+    ".ruff_cache/",
+    ".idea/",
+    ".cursor/",
+    "build/",
+    "dist/"
+]
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]
@@ -70,4 +129,4 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/yourusername/smart-job-parser"
-Repository = "https://github.com/yourusername/smart-job-parser.git" 
+Repository = "https://github.com/yourusername/smart-job-parser.git"

@@ -3,8 +3,8 @@ from typing import List
 
 from src.job_searcher.models import JobDetails
 
+
 class JobSearchVendor(ABC):
-    
     @abstractmethod
     def search_jobs(self, query: str) -> List[JobDetails]:
         pass
@@ -16,4 +16,3 @@ class JobSearchVendor(ABC):
     @abstractmethod
     def get_vendor_name(self) -> str:
         pass
-

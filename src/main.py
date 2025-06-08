@@ -1,5 +1,9 @@
+from typing import Dict
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from src.api.routers.text_processor_router import router as text_processor_router
 
 app = FastAPI(
     title="Smart Job Parser",
@@ -16,12 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(text_processor_router)
+
 
 @app.get("/")
-async def root():
+async def root() -> Dict[str, str]:
     return {"message": "Welcome to Smart Job Parser API"}
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> Dict[str, str]:
     return {"status": "healthy"}

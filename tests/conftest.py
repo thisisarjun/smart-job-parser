@@ -1,8 +1,14 @@
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+from langchain.embeddings import OllamaEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+
+from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
+from src.job_searcher.vendors.jsearch.models import SearchResponse
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
-from src.job_searcher.vendors.jsearch.models import Job as JSearchJob, SearchResponse
-from tests.fixtures.jsearch_result import jsearch_result
+from src.text_processor.text_processor_service import TextProcessor
+from tests.fixtures.jsearch_result import sample_jsearch_result
 
 
 @pytest.fixture
@@ -14,27 +20,27 @@ def mock_api_key():
 @pytest.fixture
 def jsearch_vendor(mock_api_key):
     """Create JSearchVendor instance with mock API key"""
-    with patch.dict('os.environ', {'RAPIDAPI_KEY': mock_api_key}):
+    with patch.dict("os.environ", {"RAPIDAPI_KEY": mock_api_key}):
         return JSearchVendor()
 
 
 @pytest.fixture
 def sample_jsearch_response():
     """Real JSearch API response data for testing"""
-    return jsearch_result
+    return sample_jsearch_result
 
 
 @pytest.fixture
 def sample_jsearch_job():
     """Sample JSearch job data from real API response"""
-    job_data = jsearch_result["data"][0]  # First job from the sample
+    job_data = sample_jsearch_result["data"][0]  # First job from the sample
     return JSearchJob(**job_data)
 
 
 @pytest.fixture
 def sample_search_response():
     """Sample search response using real data"""
-    return SearchResponse(**jsearch_result)
+    return SearchResponse(**sample_jsearch_result)
 
 
 @pytest.fixture
@@ -65,8 +71,25 @@ def empty_text():
 
 
 @pytest.fixture
-def mock_ollama_embeddings():
-    """Mock OllamaEmbeddings for testing embed_text function"""
-    mock_embeddings = Mock()
-    mock_embeddings.embed_query.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Sample embedding vector
-    return mock_embeddings
+def mock_ollama_class():
+    """Mock OllamaEmbeddings class for testing embed_text function"""
+    mock_class = Mock(spec=OllamaEmbeddings)
+    mock_class.embed_query.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]
+    return mock_class
+
+
+@pytest.fixture
+def mock_vector_store():
+    """Mock vector store for testing process_text function"""
+    mock_instance = Mock(spec=InMemoryVectorStore)
+    mock_instance.similarity_search.return_value = [
+        {"page_content": "test", "metadata": {"source": "test"}}
+    ]
+    return mock_instance
+
+
+@pytest.fixture
+def mock_text_processor(mock_ollama_class, mock_vector_store):
+    """Mock text processor for testing process_text function"""
+    text_processor = TextProcessor(mock_ollama_class, mock_vector_store)
+    return text_processor

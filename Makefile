@@ -25,17 +25,31 @@ start-dev:
 
 # Run tests with coverage
 test:
-	pytest
+	pytest -v
 
 # Run linting and type checking
 lint:
-	flake8 .
-	mypy .
+	flake8 src tests
+	mypy src tests
 
-# Format code
-format:
-	black .
-	isort .
+# Auto-fix linting issues where possible
+lint-fix:
+	black src tests
+	isort src tests
+
+# Format code (same as lint-fix for now)
+format: lint-fix
+
+# Run only flake8
+lint-flake8:
+	flake8 src tests
+
+# Run only mypy
+lint-mypy:
+	mypy src tests
+
+# Run all checks (lint + tests)
+check: lint test
 
 # Clean up Python cache files
 clean:
@@ -51,4 +65,4 @@ clean:
 	find . -type d -name ".coverage" -exec rm -r {} +
 	find . -type d -name "htmlcov" -exec rm -r {} +
 	find . -type d -name "dist" -exec rm -r {} +
-	find . -type d -name "build" -exec rm -r {} + 
+	find . -type d -name "build" -exec rm -r {} +
