@@ -3,6 +3,8 @@ from typing import Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# TODO: Remove this router
+from src.api.routers.debug_router import router as debug_router
 from src.api.routers.text_processor_router import router as text_processor_router
 
 app = FastAPI(
@@ -22,6 +24,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(text_processor_router)
+app.include_router(debug_router)
 
 
 @app.get("/")

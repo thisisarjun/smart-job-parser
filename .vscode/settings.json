@@ -2,5 +2,51 @@
     "makefile.configureOnOpen": false,
     "terminal.integrated.env.osx": {
         "PYTHONPATH": "${workspaceFolder}"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/venv": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.tox": true,
+        "**/.ruff_cache": true,
+        "**/.mypy_cache": true,
+        "**/*.egg-info": true,
+        "**/node_modules": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.coverage": true,
+        "**/htmlcov": true,
+        "**/dist": true,
+        "**/build": true
+    },
+    "search.exclude": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/venv": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.tox": true,
+        "**/.ruff_cache": true,
+        "**/.mypy_cache": true,
+        "**/*.egg-info": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/.venv/**": true,
+        "**/venv/**": true,
+        "**/__pycache__/**": true,
+        "**/.pytest_cache/**": true,
+        "**/.tox/**": true,
+        "**/.ruff_cache/**": true,
+        "**/.mypy_cache/**": true,
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/build/**": true
     }
 }

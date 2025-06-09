@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -32,3 +33,7 @@ class JobVectorStore(BaseModel):
             "job_country": self.job_country,
             "job_apply_link": self.job_apply_link,
         }
+
+
+class AvailableVectorStores(Enum):
+    MEMORY = "memory"

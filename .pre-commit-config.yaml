@@ -39,24 +39,6 @@ repos:
           - flake8-bugbear
         args: [--max-line-length=88]
 
-  # # mypy type checker
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.8.0
-  #   hooks:
-  #     - id: mypy
-  #       additional_dependencies:
-  #         - types-requests
-  #         - pydantic
-  #       args: [--ignore-missing-imports]
-
-  # # Security checks with bandit
-  # - repo: https://github.com/pycqa/bandit
-  #   rev: 1.7.5
-  #   hooks:
-  #     - id: bandit
-  #       args: [-r, src]
-  #       exclude: tests/
-
 
   # Pytest runner
   - repo: local
@@ -69,10 +51,3 @@ repos:
         pass_filenames: false
         always_run: true
         args: [--tb=short]
-
-  # Check requirements.txt
-  # - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-  #   rev: v1.3.2
-  #   hooks:
-  #     - id: python-safety-dependencies-check
-  #       files: requirements.*\.txt$
