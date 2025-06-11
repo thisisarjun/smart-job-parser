@@ -39,6 +39,13 @@ repos:
           - flake8-bugbear
         args: [--max-line-length=88]
 
+  # detect-secrets for preventing secrets in commits
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: .*/tests/.*
 
   # Pytest runner
   - repo: local
