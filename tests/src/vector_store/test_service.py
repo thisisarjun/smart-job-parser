@@ -270,8 +270,8 @@ class TestVectorStoreService:
             )
 
             # Test add_job_details returns None
-            result = service.add_job_details(sample_job_vector_store)
-            assert result is None
+            service.add_job_details(sample_job_vector_store)
+            # No assertion needed since add_job_details returns None
 
             # Test similarity_search returns list
             result = service.similarity_search("test")

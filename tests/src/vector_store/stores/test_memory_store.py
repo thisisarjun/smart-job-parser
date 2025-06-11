@@ -205,11 +205,19 @@ class TestMemoryStore:
         mock_docs = [
             Document(
                 page_content="Test content 1",
-                metadata={"job_id": "1", "job_title": "Developer 1"},
+                metadata={
+                    "job_id": "1",
+                    "job_title": "Developer 1",
+                    "job_apply_link": "https://example.com/1",
+                },
             ),
             Document(
                 page_content="Test content 2",
-                metadata={"job_id": "2", "job_title": "Developer 2"},
+                metadata={
+                    "job_id": "2",
+                    "job_title": "Developer 2",
+                    "job_apply_link": "https://example.com/2",
+                },
             ),
         ]
 
@@ -222,8 +230,21 @@ class TestMemoryStore:
 
             store = MemoryStore(embedding=mock_embedding)
             result = store.similarity_search("test query")
-
-            assert result == mock_docs
+            expected_result = [
+                JobVectorStore(
+                    job_id="1",
+                    job_title="Developer 1",
+                    job_apply_link="https://example.com/1",
+                    job_description="",
+                ),
+                JobVectorStore(
+                    job_id="2",
+                    job_title="Developer 2",
+                    job_apply_link="https://example.com/2",
+                    job_description="",
+                ),
+            ]
+            assert result == expected_result
             assert len(result) == 2
 
     def test_similarity_search_with_empty_results(self, mock_embedding):

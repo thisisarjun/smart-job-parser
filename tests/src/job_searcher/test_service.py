@@ -116,14 +116,14 @@ class TestJobSearchService:
         mock_vendor.search_jobs.assert_any_call("javascript")
 
     def test_search_jobs_with_none_query(self, mock_vendor, sample_job_details):
-        """Test search_jobs with None query - should let vendor handle it"""
+        """Test search_jobs with None query - should return empty list"""
         service = JobSearchService(vendor=mock_vendor)
 
-        # This should pass the None to the vendor and let vendor decide behavior
+        # When query is None, service should return empty list without calling vendor
         result = service.search_jobs(None)
 
-        assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(None)
+        assert result == []
+        mock_vendor.search_jobs.assert_not_called()
 
     def test_search_jobs_with_special_characters(self, mock_vendor, sample_job_details):
         """Test search_jobs with special characters in query"""
@@ -138,7 +138,7 @@ class TestJobSearchService:
     def test_search_jobs_with_unicode_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with Unicode characters in query"""
         service = JobSearchService(vendor=mock_vendor)
-        unicode_query = "développeur python 工程师 разработчик"
+        unicode_query = "développeur python 工程师研发工程师"
 
         result = service.search_jobs(unicode_query)
 
@@ -172,8 +172,8 @@ class TestJobSearchService:
 
         result = service.search_jobs("test query")
 
-        assert result is None
         mock_vendor.search_jobs.assert_called_once_with("test query")
+        assert result is None
 
     def test_search_jobs_vendor_side_effect_exception_types(self, mock_vendor):
         """Test different exception types from vendor"""
@@ -194,9 +194,9 @@ class TestJobSearchService:
             with pytest.raises(type(exception)):
                 service.search_jobs("test query")
 
-            # Reset for next iteration
-            mock_vendor.search_jobs.side_effect = None
-            mock_vendor.search_jobs.reset_mock()
+        # Reset after all iterations
+        mock_vendor.search_jobs.side_effect = None
+        mock_vendor.search_jobs.reset_mock()
 
 
 class TestJobSearchServiceIntegration:

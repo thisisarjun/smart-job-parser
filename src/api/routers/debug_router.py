@@ -1,3 +1,5 @@
+from typing import Dict
+
 from fastapi import APIRouter
 from langchain_community.embeddings import OllamaEmbeddings
 
@@ -13,7 +15,7 @@ vector_store_service = VectorStoreService(
 
 
 @router.get("/debug/vector_store/add_job_details")
-async def debug():
+async def debug() -> Dict[str, str]:
     vector_store_service.add_job_details(
         job_details=JobVectorStore(
             job_id="1",

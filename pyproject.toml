@@ -44,6 +44,7 @@ extend-ignore = [
     "D104",  # Missing docstring in public package
     "D105",  # Missing docstring in magic method
     "D107",  # Missing docstring in __init__
+    "D400",  # First line should end with a period
     "I100",  # Import statements are in the wrong order
     "I201",  # Missing newline between import groups
     "E402",  # module level import not at top of file (for sys.path.append cases)

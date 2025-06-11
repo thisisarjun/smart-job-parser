@@ -152,11 +152,11 @@ class TestJobVectorStore:
     def test_pydantic_validation_missing_required_field(self):
         """Test that Pydantic validation catches missing required fields"""
         with pytest.raises(ValueError):
-            JobVectorStore(
+            JobVectorStore(  # type: ignore
+                # Missing job_id - this should raise ValueError
                 job_title="Test Job",
                 job_description="Test description",
                 job_apply_link="https://example.com/test",
-                # Missing job_id
             )
 
     def test_pydantic_model_serialization(self, sample_job_vector_store):
