@@ -13,7 +13,6 @@ class TestMemoryStore:
     def test_init_with_embedding(self, mock_embedding):
         """Test initialization with embedding"""
         store = MemoryStore(embedding=mock_embedding)
-
         assert store.vector_store is not None
         assert hasattr(store, "vector_store")
 

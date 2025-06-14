@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from langchain.embeddings import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
+from pinecone import Index, Pinecone
 
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.models import SearchResponse
@@ -86,6 +87,20 @@ def mock_vector_store():
         {"page_content": "test", "metadata": {"source": "test"}}
     ]
     return mock_instance
+
+
+@pytest.fixture
+def mock_pinecone():
+    """Mock PineconeEmbeddings class for testing embed_text function"""
+    # Create mock index instance
+    mock_index = Mock(spec=Index)
+    mock_index.upsert_records = Mock()
+
+    # Create mock Pinecone client
+    mockPineCone = Mock(spec=Pinecone)
+    mockPineCone.Index.return_value = mock_index
+
+    return mockPineCone
 
 
 @pytest.fixture

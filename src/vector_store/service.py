@@ -1,13 +1,10 @@
-from langchain_core.embeddings import Embeddings
-
-from src.vector_store.models import AvailableVectorStores, JobVectorStore
-from src.vector_store.stores.memory_store import MemoryStore
+from src.vector_store.interface import VectorStore
+from src.vector_store.models import JobVectorStore
 
 
 class VectorStoreService:
-    def __init__(self, vector_store_type: AvailableVectorStores, embedding: Embeddings):
-        if vector_store_type == AvailableVectorStores.MEMORY:
-            self.vector_store = MemoryStore(embedding=embedding)
+    def __init__(self, vector_store: VectorStore) -> None:
+        self.vector_store = vector_store
 
     def add_job_details(self, job_details: JobVectorStore) -> None:
         self.vector_store.add_job_details(job_details)

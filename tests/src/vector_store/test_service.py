@@ -1,8 +1,8 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
-from src.vector_store.models import AvailableVectorStores, JobVectorStore
+from src.vector_store.models import JobVectorStore
 from src.vector_store.service import VectorStoreService
 from src.vector_store.stores.memory_store import MemoryStore
 
@@ -10,92 +10,56 @@ from src.vector_store.stores.memory_store import MemoryStore
 class TestVectorStoreService:
     """Test cases for VectorStoreService"""
 
-    def test_init_with_memory_store_type(self, mock_embedding):
-        """Test initialization with MEMORY vector store type"""
-        service = VectorStoreService(
-            vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-        )
+    def test_init_with_vector_store(self):
+        """Test initialization with vector store instance"""
+        mock_store = Mock(spec=MemoryStore)
+        service = VectorStoreService(vector_store=mock_store)
 
-        assert service.vector_store is not None
-        assert isinstance(service.vector_store, MemoryStore)
+        assert service.vector_store is mock_store  # Test exact instance reference
 
-    @patch("src.vector_store.service.MemoryStore")
-    def test_init_creates_memory_store_with_embedding(
-        self, mock_memory_store_class, mock_embedding
-    ):
-        """Test that initialization creates MemoryStore with correct embedding"""
-        mock_instance = Mock()
-        mock_memory_store_class.return_value = mock_instance
+    def test_init_requires_vector_store(self):
+        """Test that initialization requires a vector store"""
+        with pytest.raises(TypeError):
+            VectorStoreService()  # No vector_store provided
 
-        service = VectorStoreService(
-            vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-        )
-
-        mock_memory_store_class.assert_called_once_with(embedding=mock_embedding)
-        assert service.vector_store == mock_instance
-
-    def test_add_job_details_delegates_to_vector_store(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_delegates_to_vector_store(self, sample_job_vector_store):
         """Test that add_job_details delegates to the underlying vector store"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        service.add_job_details(sample_job_vector_store)
 
-            service.add_job_details(sample_job_vector_store)
+        mock_store.add_job_details.assert_called_once_with(sample_job_vector_store)
 
-            mock_instance.add_job_details.assert_called_once_with(
-                sample_job_vector_store
-            )
-
-    def test_similarity_search_delegates_to_vector_store(self, mock_embedding):
+    def test_similarity_search_delegates_to_vector_store(self):
         """Test that similarity_search delegates to the underlying vector store"""
         mock_results = [Mock(spec=JobVectorStore)]
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = mock_results
+        service = VectorStoreService(vector_store=mock_store)
 
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = mock_results
-            mock_memory_store_class.return_value = mock_instance
+        query = "python developer"
+        result = service.similarity_search(query)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        mock_store.similarity_search.assert_called_once_with(query)
+        assert result == mock_results
 
-            query = "python developer"
-            result = service.similarity_search(query)
-
-            mock_instance.similarity_search.assert_called_once_with(query)
-            assert result == mock_results
-
-    def test_add_job_details_with_multiple_jobs(
-        self, mock_embedding, sample_job_vector_stores
-    ):
+    def test_add_job_details_with_multiple_jobs(self, sample_job_vector_stores):
         """Test adding multiple job details"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        # Add multiple jobs
+        for job in sample_job_vector_stores:
+            service.add_job_details(job)
 
-            # Add multiple jobs
-            for job in sample_job_vector_stores:
-                service.add_job_details(job)
+        # Verify each job was added
+        assert mock_store.add_job_details.call_count == len(sample_job_vector_stores)
 
-            # Verify each job was added
-            assert mock_instance.add_job_details.call_count == len(
-                sample_job_vector_stores
-            )
-
-            # Verify each call was made with correct job
-            for i, job in enumerate(sample_job_vector_stores):
-                call_args = mock_instance.add_job_details.call_args_list[i]
-                assert call_args[0][0] == job
+        # Verify each call was made with correct job
+        for i, job in enumerate(sample_job_vector_stores):
+            call_args = mock_store.add_job_details.call_args_list[i]
+            assert call_args[0][0] == job
 
     @pytest.mark.parametrize(
         "query",
@@ -109,173 +73,119 @@ class TestVectorStoreService:
             "very long query with many words to test edge cases",
         ],
     )
-    def test_similarity_search_with_various_queries(self, mock_embedding, query):
+    def test_similarity_search_with_various_queries(self, query):
         """Test similarity_search with various query strings"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = []
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = []
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        result = service.similarity_search(query)
 
-            result = service.similarity_search(query)
-
-            mock_instance.similarity_search.assert_called_once_with(query)
-            assert result == []
+        mock_store.similarity_search.assert_called_once_with(query)
+        assert result == []
 
     def test_similarity_search_returns_job_vector_stores(
-        self, mock_embedding, sample_job_vector_stores
+        self, sample_job_vector_stores
     ):
         """Test that similarity_search returns list of JobVectorStore objects"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = sample_job_vector_stores
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = sample_job_vector_stores
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        result = service.similarity_search("test query")
 
-            result = service.similarity_search("test query")
+        assert result == sample_job_vector_stores
+        assert isinstance(result, list)
+        assert len(result) == len(sample_job_vector_stores)
 
-            assert result == sample_job_vector_stores
-            assert isinstance(result, list)
-            assert len(result) == len(sample_job_vector_stores)
-
-    def test_similarity_search_with_empty_results(self, mock_embedding):
+    def test_similarity_search_with_empty_results(self):
         """Test similarity_search when no results are found"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = []
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = []
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        result = service.similarity_search("nonexistent query")
 
-            result = service.similarity_search("nonexistent query")
+        assert result == []
+        assert isinstance(result, list)
 
-            assert result == []
-            assert isinstance(result, list)
-
-    def test_add_job_details_preserves_exceptions(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_preserves_exceptions(self, sample_job_vector_store):
         """Test that add_job_details preserves exceptions from vector store"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.add_job_details.side_effect = ValueError("Storage error")
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.add_job_details.side_effect = ValueError("Storage error")
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        with pytest.raises(ValueError, match="Storage error"):
+            service.add_job_details(sample_job_vector_store)
 
-            with pytest.raises(ValueError, match="Storage error"):
-                service.add_job_details(sample_job_vector_store)
-
-    def test_similarity_search_preserves_exceptions(self, mock_embedding):
+    def test_similarity_search_preserves_exceptions(self):
         """Test that similarity_search preserves exceptions from vector store"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.side_effect = RuntimeError("Search error")
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.side_effect = RuntimeError("Search error")
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        with pytest.raises(RuntimeError, match="Search error"):
+            service.similarity_search("test query")
 
-            with pytest.raises(RuntimeError, match="Search error"):
-                service.similarity_search("test query")
-
-    def test_service_vector_store_attribute_access(self, mock_embedding):
+    def test_service_vector_store_attribute_access(self):
         """Test that vector_store attribute is accessible"""
-        service = VectorStoreService(
-            vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-        )
+        mock_store = Mock(spec=MemoryStore)
+        service = VectorStoreService(vector_store=mock_store)
 
         assert hasattr(service, "vector_store")
-        assert service.vector_store is not None
-        assert isinstance(service.vector_store, MemoryStore)
+        assert service.vector_store is mock_store  # Test exact instance reference
 
-    def test_add_job_details_then_search_integration(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_then_search_integration(self, sample_job_vector_store):
         """Test integration of adding job details then searching"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = [sample_job_vector_store]
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = [sample_job_vector_store]
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        # Add job
+        service.add_job_details(sample_job_vector_store)
 
-            # Add job
-            service.add_job_details(sample_job_vector_store)
+        # Search for job
+        results = service.similarity_search("python developer")
 
-            # Search for job
-            results = service.similarity_search("python developer")
+        # Verify both operations were called
+        mock_store.add_job_details.assert_called_once_with(sample_job_vector_store)
+        mock_store.similarity_search.assert_called_once_with("python developer")
+        assert results == [sample_job_vector_store]
 
-            # Verify both operations were called
-            mock_instance.add_job_details.assert_called_once_with(
-                sample_job_vector_store
-            )
-            mock_instance.similarity_search.assert_called_once_with("python developer")
-            assert results == [sample_job_vector_store]
-
-    def test_multiple_sequential_operations(
-        self, mock_embedding, sample_job_vector_stores
-    ):
+    def test_multiple_sequential_operations(self, sample_job_vector_stores):
         """Test multiple sequential add and search operations"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.similarity_search.return_value = sample_job_vector_stores
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.similarity_search.return_value = sample_job_vector_stores
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        # Add multiple jobs
+        for job in sample_job_vector_stores:
+            service.add_job_details(job)
 
-            # Add multiple jobs
-            for job in sample_job_vector_stores:
-                service.add_job_details(job)
+        # Perform multiple searches
+        queries = ["python", "react", "data science"]
+        for query in queries:
+            results = service.similarity_search(query)
+            assert results == sample_job_vector_stores
 
-            # Perform multiple searches
-            queries = ["python", "react", "data science"]
-            for query in queries:
-                results = service.similarity_search(query)
-                assert results == sample_job_vector_stores
+        # Verify call counts
+        assert mock_store.add_job_details.call_count == len(sample_job_vector_stores)
+        assert mock_store.similarity_search.call_count == len(queries)
 
-            # Verify call counts
-            assert mock_instance.add_job_details.call_count == len(
-                sample_job_vector_stores
-            )
-            assert mock_instance.similarity_search.call_count == len(queries)
-
-    def test_service_methods_return_types(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_service_methods_return_types(self, sample_job_vector_store):
         """Test that service methods return correct types"""
-        with patch("src.vector_store.service.MemoryStore") as mock_memory_store_class:
-            mock_instance = Mock()
-            mock_instance.add_job_details.return_value = None
-            mock_instance.similarity_search.return_value = [sample_job_vector_store]
-            mock_memory_store_class.return_value = mock_instance
+        mock_store = Mock(spec=MemoryStore)
+        mock_store.add_job_details.return_value = None
+        mock_store.similarity_search.return_value = [sample_job_vector_store]
+        service = VectorStoreService(vector_store=mock_store)
 
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-            )
+        # Test add_job_details returns None
+        service.add_job_details(sample_job_vector_store)
+        # No assertion needed since add_job_details returns None
 
-            # Test add_job_details returns None
-            service.add_job_details(sample_job_vector_store)
-            # No assertion needed since add_job_details returns None
-
-            # Test similarity_search returns list
-            result = service.similarity_search("test")
-            assert isinstance(result, list)
+        # Test similarity_search returns list
+        result = service.similarity_search("test")
+        assert isinstance(result, list)
 
 
 class TestVectorStoreServiceIntegration:
@@ -285,9 +195,8 @@ class TestVectorStoreServiceIntegration:
         self, mock_embedding, sample_job_vector_store
     ):
         """Test service with actual MemoryStore instance (not mocked)"""
-        service = VectorStoreService(
-            vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-        )
+        memory_store = MemoryStore(embedding=mock_embedding)
+        service = VectorStoreService(vector_store=memory_store)
 
         # This should not raise an exception
         service.add_job_details(sample_job_vector_store)
@@ -296,18 +205,14 @@ class TestVectorStoreServiceIntegration:
         results = service.similarity_search("python developer")
         assert isinstance(results, list)
 
-    def test_service_initialization_with_different_embeddings(self):
-        """Test service initialization with different embedding types"""
-        mock_embeddings = [
-            Mock(name="embedding1"),
-            Mock(name="embedding2"),
-            Mock(name="embedding3"),
+    def test_service_initialization_with_different_stores(self):
+        """Test service initialization with different store types"""
+        mock_stores = [
+            Mock(spec=MemoryStore, name="store1"),
+            Mock(spec=MemoryStore, name="store2"),
+            Mock(spec=MemoryStore, name="store3"),
         ]
 
-        for embedding in mock_embeddings:
-            service = VectorStoreService(
-                vector_store_type=AvailableVectorStores.MEMORY, embedding=embedding
-            )
-
-            assert service.vector_store is not None
-            assert isinstance(service.vector_store, MemoryStore)
+        for store in mock_stores:
+            service = VectorStoreService(vector_store=store)
+            assert service.vector_store is store  # Test exact instance reference

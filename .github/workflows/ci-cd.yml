@@ -133,7 +133,8 @@ jobs:
     environment: production
 
     steps:
-    - name: Deploy to Production
-      run: |
-        echo "🚀 Deploying to production environment..."
-        # Add your production deployment commands here
+    - name: Deploy to Render
+      uses: render/deploy-action@v1
+      with:
+        render-token: ${{ secrets.RENDER_TOKEN }}
+        service-id: ${{ secrets.RENDER_SERVICE_ID }}

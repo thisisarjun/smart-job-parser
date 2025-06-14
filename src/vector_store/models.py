@@ -37,3 +37,4 @@ class JobVectorStore(BaseModel):
 
 class AvailableVectorStores(Enum):
     MEMORY = "memory"
+    PINECONE = "pinecone"
