@@ -1,24 +1,21 @@
-from typing import Dict
+from typing import Any, Dict
 
 from fastapi import APIRouter
-from langchain_community.embeddings import OllamaEmbeddings
 
-from src.vector_store.models import AvailableVectorStores, JobVectorStore
+from src.vector_store.models import JobVectorStore
 from src.vector_store.service import VectorStoreService
+from src.vector_store.stores.pinecone_store import PineconeStore
 
 router = APIRouter()
 
-vector_store_service = VectorStoreService(
-    vector_store_type=AvailableVectorStores.MEMORY,
-    embedding=OllamaEmbeddings(model="mxbai-embed-large"),
-)
+vector_store_service = VectorStoreService(PineconeStore())
 
 
-@router.get("/debug/vector_store/add_job_details")
-async def debug() -> Dict[str, str]:
+@router.post("/debug/vector_store/add_job_details")
+async def debug_add_job_details() -> Dict[str, str]:
     vector_store_service.add_job_details(
         job_details=JobVectorStore(
-            job_id="1",
+            job_id="2",
             job_title="Software Engineer",
             job_description=(
                 "We are looking for a software engineer with 3 years of "
@@ -33,3 +30,11 @@ async def debug() -> Dict[str, str]:
         )
     )
     return {"message": "Debug endpoint"}
+
+
+@router.get("/debug/vector_store/similarity_search")
+async def debug_similarity_search() -> Any:
+    results = vector_store_service.similarity_search(
+        query="We are looking for a software engineer with 3 years of experience in Python and Django."  # noqa: E501
+    )
+    return results

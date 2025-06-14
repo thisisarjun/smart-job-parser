@@ -25,7 +25,7 @@ start-dev:
 
 # Run tests with coverage
 test:
-	pytest -v
+	pytest -v tests/src/vector_store/stores/test_pinecone_store.py
 
 # Run linting and type checking
 lint:

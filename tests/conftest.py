@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from langchain.embeddings import OllamaEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from pinecone import Index, Pinecone
 

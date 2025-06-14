@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from langchain.embeddings import OllamaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 

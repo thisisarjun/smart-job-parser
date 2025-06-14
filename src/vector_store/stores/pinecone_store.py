@@ -39,8 +39,25 @@ class PineconeStore(VectorStore):
             rerank={
                 "model": "bge-reranker-v2-m3",
                 "top_n": 5,
-                "rank_fields": ["job_description"],
+                "rank_fields": ["description"],
             },
-            fields=["job_description"],
+            # fields=["description"],
         )
-        return reranked_results
+        reranked_results_hits = reranked_results.result.hits
+        job_vector_stores = []
+        for hit in reranked_results_hits:
+            fields = hit.fields
+            job_vector_store = JobVectorStore(
+                job_id=fields.get("job_id"),
+                job_title=fields.get("job_title"),
+                job_description=fields.get("job_description"),
+                job_apply_link=fields.get("job_apply_link"),
+                employer_name=fields.get("employer_name"),
+                job_city=fields.get("job_city"),
+                job_state=fields.get("job_state"),
+                job_country=fields.get("job_country"),
+                location_string=fields.get("location_string"),
+                score=hit._score,
+            )
+            job_vector_stores.append(job_vector_store)
+        return job_vector_stores

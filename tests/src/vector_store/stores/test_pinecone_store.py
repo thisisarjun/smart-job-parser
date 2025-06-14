@@ -5,6 +5,7 @@ from pinecone import Pinecone
 
 from src.vector_store.models import JobVectorStore
 from src.vector_store.stores.pinecone_store import PineconeStore
+from tests.fixtures.pinecone_search_result import pinecone_search_result
 
 
 class TestPineconeStore:
@@ -14,13 +15,14 @@ class TestPineconeStore:
         sample_job_vector_stores: List[JobVectorStore],
         mock_pinecone: Pinecone,
     ) -> None:
+        print(pinecone_search_result)
         store = PineconeStore()
         store.index = mock_pinecone.Index
         upsert_records_spy = store.index.upsert_records = Mock()
         store.add_job_details(sample_job_vector_stores[0])
         upsert_records_spy.assert_called_once()
         upsert_records_spy.assert_called_with(
-            "dummy",
+            "jobs",
             [
                 {
                     "id": sample_job_vector_stores[0].job_id,
@@ -36,6 +38,33 @@ class TestPineconeStore:
                     "job_description": sample_job_vector_stores[0].job_description,
                     "job_apply_link": sample_job_vector_stores[0].job_apply_link,
                     "location_string": sample_job_vector_stores[0].location_string,
+                    "score": None,
                 }
             ],
         )
+
+    def test_similarity_search(
+        self,
+        mock_pinecone: Pinecone,
+    ) -> None:
+        store = PineconeStore()
+        store.index = mock_pinecone.Index
+        similarity_search_spy = store.index.search = Mock(
+            return_value=pinecone_search_result
+        )
+        results = store.similarity_search(query="software engineer")
+        similarity_search_spy.assert_called_once()
+        assert results == [
+            JobVectorStore(
+                job_id="2",
+                job_title="Software Engineer",
+                job_description="We are looking for a software engineer with 3 years of experience in Python and Django.",  # noqa: E501
+                job_apply_link="https://www.google.com",
+                employer_name="Google",
+                job_city="San Francisco",
+                job_state="CA",
+                job_country="USA",
+                location_string="San Francisco, CA, USA",
+                score=0.9997219443321228,
+            )
+        ]

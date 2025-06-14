@@ -14,6 +14,7 @@ class JobVectorStore(BaseModel):
     job_state: Optional[str] = None
     job_country: Optional[str] = None
     location_string: Optional[str] = None
+    score: Optional[float] = None
 
     def get_combined_text_document(self) -> str:
         return (
