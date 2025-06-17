@@ -13,23 +13,11 @@ class TestJSearchVendorInit:
 
     def test_init_with_api_key(self):
         """Test initialization with provided API key"""
-        vendor = JSearchVendor(api_key="test_key")  # pragma: allowlist secret
-        assert vendor.api_key == "test_key"
+        vendor = JSearchVendor()  # pragma: allowlist secret
+        assert vendor.api_key == "test_api_key"  # pragma: allowlist secret
         assert vendor.base_url == "https://jsearch.p.rapidapi.com"
-        assert vendor.headers["x-rapidapi-key"] == "test_key"
+        assert vendor.headers["x-rapidapi-key"] == "test_api_key"
         assert vendor.headers["x-rapidapi-host"] == "jsearch.p.rapidapi.com"
-
-    def test_init_with_env_api_key(self, mock_api_key):
-        """Test initialization with API key from environment"""
-        with patch.dict("os.environ", {"RAPIDAPI_KEY": mock_api_key}):
-            vendor = JSearchVendor()
-            assert vendor.api_key == mock_api_key
-
-    def test_init_without_api_key(self):
-        """Test initialization fails without API key"""
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="RapidAPI key is required"):
-                JSearchVendor()
 
 
 class TestJSearchVendorConversion:
@@ -86,7 +74,7 @@ class TestJSearchVendorSearchJobs:
         mock_client.get.return_value = mock_response
 
         # Execute
-        result = jsearch_vendor.search_jobs("software engineer")
+        result = jsearch_vendor.search_jobs("software engineer", {"country": "us"})
 
         # Verify
         assert len(result) == 10

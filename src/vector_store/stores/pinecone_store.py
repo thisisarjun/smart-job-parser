@@ -1,6 +1,6 @@
 from pinecone import Index, Pinecone
 
-from src.config import config
+from config import settings
 from src.vector_store.interface import VectorStore
 from src.vector_store.models import JobVectorStore
 
@@ -10,15 +10,15 @@ class PineconeStore(VectorStore):
     namespace: str
 
     def __init__(self):
-        api_key = config["PINECONE_API_KEY"]
-        index_name = config["PINECONE_INDEX"]
+        api_key = settings.pinecone_api_key
+        index_name = settings.pinecone_index
         # pinecone already has an embedding model
         pc = Pinecone(api_key=api_key)
         self.index = pc.Index(index_name)
-        self.namespace = config["PINECONE_NAMESPACE"]
+        self.namespace = settings.pinecone_namespace
 
     def add_job_details(self, job_details: JobVectorStore) -> None:
-        # TODO: better use of id, and testing required for this method
+        # TODO: better id
         record_id = job_details.job_id
         self.index.upsert_records(
             self.namespace,
@@ -32,7 +32,6 @@ class PineconeStore(VectorStore):
         )
 
     def similarity_search(self, query: str) -> list[JobVectorStore]:
-        # TODO: need to test this
         reranked_results = self.index.search(
             namespace=self.namespace,
             query={"top_k": 5, "inputs": {"text": query}},

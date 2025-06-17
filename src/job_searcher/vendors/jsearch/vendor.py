@@ -1,8 +1,9 @@
-import os
-from typing import List, Optional
+# TODO: make everything async
+from typing import Any, Dict, List, Optional
 
 import httpx
 
+from config import settings
 from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
@@ -13,16 +14,17 @@ class JSearchVendor(JobSearchVendor):
     """JSearch API implementation for job searching via RapidAPI"""
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("RAPIDAPI_KEY")
+        self.api_key = settings.jsearch_api_key
         if not self.api_key:
             raise ValueError(
-                "RapidAPI key is required. Set RAPIDAPI_KEY environment variable."
+                "RapidAPI key is required. Set JSEARCH_API_KEY environment variable."
             )
 
         # Using the RapidAPI endpoint from the curl example
-        self.base_url = "https://jsearch.p.rapidapi.com"
+        self.base_url = settings.jsearch_base_url
+        self.jsearch_header_host = settings.jsearch_header_host
         self.headers = {
-            "x-rapidapi-host": "jsearch.p.rapidapi.com",
+            "x-rapidapi-host": self.jsearch_header_host,
             "x-rapidapi-key": self.api_key,
         }
 
@@ -36,17 +38,20 @@ class JSearchVendor(JobSearchVendor):
             job_url=jsearch_job.job_apply_link,
         )
 
-    def search_jobs(self, query: str) -> List[JobDetails]:
+    def search_jobs(
+        self, query: str, filters: Optional[Dict[str, Any]] = None
+    ) -> List[JobDetails]:
         """Search for jobs using JSearch API via RapidAPI"""
         try:
-            # Create search parameters with the query
             search_params = SearchParams(query=query)
+            if filters is not None:
+                search_params.country = filters.get("country")
 
             # Make synchronous request
             with httpx.Client() as client:
                 query_params = search_params.to_jsearch_params()
-                # Add default parameters from the curl example
-                query_params.update({"country": "us", "date_posted": "all"})
+
+                query_params.update({"date_posted": "all"})
 
                 response = client.get(
                     f"{self.base_url}/search",

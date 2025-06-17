@@ -15,30 +15,27 @@ class TestPineconeStore:
         sample_job_vector_stores: List[JobVectorStore],
         mock_pinecone: Pinecone,
     ) -> None:
-        print(pinecone_search_result)
+        # The mock_pinecone fixture is already applied via autouse=True
+        # We just need to set up the mock chain properly
+        mock_index = Mock()
+        mock_pinecone.return_value.Index.return_value = mock_index
+
         store = PineconeStore()
-        store.index = mock_pinecone.Index
-        upsert_records_spy = store.index.upsert_records = Mock()
+
+        # Now test the method
         store.add_job_details(sample_job_vector_stores[0])
-        upsert_records_spy.assert_called_once()
-        upsert_records_spy.assert_called_with(
-            "jobs",
+
+        # Verify the mock was called correctly
+        mock_index.upsert_records.assert_called_once()
+        mock_index.upsert_records.assert_called_with(
+            "test_namespace",  # This matches the default from settings
             [
                 {
                     "id": sample_job_vector_stores[0].job_id,
-                    "job_id": sample_job_vector_stores[0].job_id,
                     "description": sample_job_vector_stores[
                         0
                     ].get_combined_text_document(),
-                    "employer_name": sample_job_vector_stores[0].employer_name,
-                    "job_title": sample_job_vector_stores[0].job_title,
-                    "job_city": sample_job_vector_stores[0].job_city,
-                    "job_state": sample_job_vector_stores[0].job_state,
-                    "job_country": sample_job_vector_stores[0].job_country,
-                    "job_description": sample_job_vector_stores[0].job_description,
-                    "job_apply_link": sample_job_vector_stores[0].job_apply_link,
-                    "location_string": sample_job_vector_stores[0].location_string,
-                    "score": None,
+                    **sample_job_vector_stores[0].model_dump(),
                 }
             ],
         )
@@ -47,13 +44,17 @@ class TestPineconeStore:
         self,
         mock_pinecone: Pinecone,
     ) -> None:
+        # Set up the mock chain
+        mock_index = Mock()
+        mock_pinecone.return_value.Index.return_value = mock_index
+        mock_index.search.return_value = pinecone_search_result
+
         store = PineconeStore()
-        store.index = mock_pinecone.Index
-        similarity_search_spy = store.index.search = Mock(
-            return_value=pinecone_search_result
-        )
+
         results = store.similarity_search(query="software engineer")
-        similarity_search_spy.assert_called_once()
+
+        # Verify the mock was called
+        mock_index.search.assert_called_once()
         assert results == [
             JobVectorStore(
                 job_id="2",

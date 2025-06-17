@@ -45,6 +45,7 @@ class SearchParams(BaseModel):
     num_pages: int = Field(
         default=1, ge=1, le=20, description="Number of pages to fetch"
     )
+    country: Optional[str] = Field(default=None, description="Country filter")
 
     def to_jsearch_params(self) -> Dict[str, Any]:
         """Convert to JSearch API parameters"""
@@ -68,6 +69,8 @@ class SearchParams(BaseModel):
             params["radius"] = str(self.radius)
         if self.num_pages:
             params["num_pages"] = str(self.num_pages)
+        if self.country:
+            params["country"] = self.country
 
         return params
 

@@ -1,9 +1,9 @@
+import os
 from unittest.mock import Mock, patch
 
 import pytest
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
-from pinecone import Index, Pinecone
 
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.models import SearchResponse
@@ -21,7 +21,7 @@ def mock_api_key():
 @pytest.fixture
 def jsearch_vendor(mock_api_key):
     """Create JSearchVendor instance with mock API key"""
-    with patch.dict("os.environ", {"RAPIDAPI_KEY": mock_api_key}):
+    with patch.dict("os.environ", {"JSEARCH_API_KEY": mock_api_key}):
         return JSearchVendor()
 
 
@@ -89,18 +89,10 @@ def mock_vector_store():
     return mock_instance
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_pinecone():
-    """Mock PineconeEmbeddings class for testing embed_text function"""
-    # Create mock index instance
-    mock_index = Mock(spec=Index)
-    mock_index.upsert_records = Mock()
-
-    # Create mock Pinecone client
-    mockPineCone = Mock(spec=Pinecone)
-    mockPineCone.Index.return_value = mock_index
-
-    return mockPineCone
+    with patch("src.vector_store.stores.pinecone_store.Pinecone") as MockPinecone:
+        yield MockPinecone
 
 
 @pytest.fixture
@@ -108,3 +100,8 @@ def mock_text_processor(mock_ollama_class, mock_vector_store):
     """Mock text processor for testing process_text function"""
     text_processor = TextProcessor(mock_ollama_class, mock_vector_store)
     return text_processor
+
+
+def pytest_configure():
+    # This runs before any tests are collected or run
+    os.environ["ENV"] = "testing"

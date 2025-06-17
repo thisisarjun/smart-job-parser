@@ -1,3 +1,4 @@
+
 .PHONY: start start-dev test lint format clean pre-commit-install pre-commit-run pre-commit-all
 
 setup:
@@ -25,7 +26,7 @@ start-dev:
 
 # Run tests with coverage
 test:
-	pytest -v tests/src/vector_store/stores/test_pinecone_store.py
+	pytest -v
 
 # Run linting and type checking
 lint:

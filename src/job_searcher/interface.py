@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from src.job_searcher.models import JobDetails
 
 
 class JobSearchVendor(ABC):
     @abstractmethod
-    def search_jobs(self, query: str) -> List[JobDetails]:
+    def search_jobs(
+        self, query: str, filters: Optional[Dict[str, Any]]
+    ) -> List[JobDetails]:
         pass
 
     @abstractmethod

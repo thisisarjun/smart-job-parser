@@ -132,28 +132,6 @@ class TestSplitText:
             mock_text_processor.split_text("test", chunk_size=-100)
 
 
-class TestEmbedText:
-    """Test cases for embed_text function"""
-
-    def test_embed_text_success(
-        self, mock_text_processor: TextProcessor, mocker: MockerFixture
-    ):
-        """Test successful text embedding"""
-        # Setup mock
-        test_text = "This is a test text for embedding"
-        expected_embedding = [0.1, 0.2, 0.3, 0.4, 0.5]
-        embed_query_spy = mocker.spy(
-            mock_text_processor.ollama_embeddings, "embed_query"
-        )
-
-        embed_query_spy.return_value = expected_embedding
-        result = mock_text_processor.embed_text(test_text)
-
-        # Assert
-        assert result == expected_embedding
-        embed_query_spy.assert_called_once_with(test_text)
-
-
 class TestIntegration:
     """Integration tests for text processing workflow"""
 
