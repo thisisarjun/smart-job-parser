@@ -46,15 +46,3 @@ repos:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
         exclude: .*/tests/.*
-
-  # Pytest runner
-  # - repo: local
-  #   hooks:
-  #     - id: pytest
-  #       name: pytest
-  #       entry: pytest
-  #       language: system
-  #       types: [python]
-  #       pass_filenames: false
-  #       always_run: true
-  #       args: [--tb=short]
