@@ -108,6 +108,9 @@ python_classes = ["Test*"]
 addopts = "-v --cov=src --cov-report=term-missing"
 asyncio_mode = "auto"
 
+[tool.pytest_env]
+ENV="testing"
+
 [project]
 name = "smart-job-parser"
 version = "0.1.0"

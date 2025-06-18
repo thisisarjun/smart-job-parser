@@ -1,4 +1,3 @@
-import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -100,8 +99,3 @@ def mock_text_processor(mock_ollama_class, mock_vector_store):
     """Mock text processor for testing process_text function"""
     text_processor = TextProcessor(mock_ollama_class, mock_vector_store)
     return text_processor
-
-
-def pytest_configure():
-    # This runs before any tests are collected or run
-    os.environ["ENV"] = "testing"

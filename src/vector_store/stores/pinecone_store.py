@@ -12,12 +12,12 @@ class PineconeStore(VectorStore):
     namespace: str
 
     def __init__(self):
-        api_key = settings.pinecone_api_key
-        index_name = settings.pinecone_index
+        api_key = settings.PINECONE_API_KEY
+        index_name = settings.PINECONE_INDEX
         # pinecone already has an embedding model
         pc = Pinecone(api_key=api_key)
         self.index = pc.Index(index_name)
-        self.namespace = settings.pinecone_namespace
+        self.namespace = settings.PINECONE_NAMESPACE
 
     def add_job_details(self, job_details: List[JobVectorStore]) -> None:
         # TODO: better id

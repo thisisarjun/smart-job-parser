@@ -1,6 +1,7 @@
+import os
 from pathlib import Path
 
-from dynaconf import Dynaconf, Validator
+from dotenv import load_dotenv
 
 
 # Get project root
@@ -10,34 +11,56 @@ def get_project_root() -> Path:
 
 
 project_root = get_project_root()
+print(f"project_root: {project_root}")
 
-settings = Dynaconf(
-    envvar_prefix="",  # No prefix for environment variables
-    settings_files=["settings.toml"],  # Load settings.toml
-    environments=True,  # Enable environments
-    load_dotenv=True,  # Load .env files
-    env_switcher="ENV",  # Use ENV environment variable to switch environments
-    dotenv_path=project_root / ".env",  # Default .env file
-    validators=[
-        # API Settings
-        Validator("API_PREFIX", default="/api/v1"),
-        Validator("PROJECT_NAME", default="Smart Job Parser"),
-        # Server Settings
-        Validator("HOST", default="0.0.0.0"),
-        Validator("PORT", default=8000, cast=int),
-        # RapidAPI Settings
-        Validator("JSEARCH_API_KEY", default="test_api_key"),
-        Validator("RAPIDAPI_HOST", default="jsearch.p.rapidapi.com"),
-        # Vector Store Settings
-        Validator("VECTOR_STORE_TYPE", default="memory"),
-        # Model Settings
-        Validator("EMBEDDING_MODEL", default="mxbai-embed-large"),
-        # Pinecone Settings
-        Validator("PINECONE_API_KEY", default="test_pinecone_key"),
-        Validator("PINECONE_INDEX", default="test_index"),
-        Validator("PINECONE_NAMESPACE", default="test_namespace"),
-        # JSearch Settings
-        Validator("JSEARCH_BASE_URL", default="https://jsearch.p.rapidapi.com"),
-        Validator("JSEARCH_HEADER_HOST", default="jsearch.p.rapidapi.com"),
-    ],
+
+dotenv_path = (
+    project_root / ".env.test"
+    if os.getenv("ENV") == "testing"
+    else project_root / ".env"
 )
+# Load .env file
+load_dotenv(dotenv_path)
+
+
+class Settings:
+    """Application settings loaded from environment variables"""
+
+    def __init__(self):
+        # API Settings
+        self.API_PREFIX = os.getenv("API_PREFIX", "/api/v1")
+        self.PROJECT_NAME = os.getenv("PROJECT_NAME", "Smart Job Parser")
+
+        # Server Settings
+        self.HOST = os.getenv("HOST", "0.0.0.0")
+        self.PORT = int(os.getenv("PORT", "8000"))
+
+        # RapidAPI Settings
+        self.JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY", "test_api_key")
+        self.RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST", "jsearch.p.rapidapi.com")
+
+        # Vector Store Settings
+        self.VECTOR_STORE_TYPE = os.getenv("VECTOR_STORE_TYPE", "memory")
+
+        # Model Settings
+        self.EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "mxbai-embed-large")
+
+        # Pinecone Settings
+        self.PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "test_pinecone_key")
+        self.PINECONE_INDEX = os.getenv("PINECONE_INDEX", "test_index")
+        self.PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "test_namespace")
+
+        # JSearch Settings
+        self.JSEARCH_BASE_URL = os.getenv(
+            "JSEARCH_BASE_URL", "https://jsearch.p.rapidapi.com"
+        )
+        self.JSEARCH_HEADER_HOST = os.getenv(
+            "JSEARCH_HEADER_HOST", "jsearch.p.rapidapi.com"
+        )
+
+        # Debug settings
+        self.DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+
+
+# Create settings instance
+settings = Settings()

@@ -14,18 +14,18 @@ class JSearchVendor(JobSearchVendor):
     """JSearch API implementation for job searching via RapidAPI"""
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = settings.jsearch_api_key
+        self.api_key = settings.JSEARCH_API_KEY
         if not self.api_key:
             raise ValueError(
                 "RapidAPI key is required. Set JSEARCH_API_KEY environment variable."
             )
 
         # Using the RapidAPI endpoint from the curl example
-        self.base_url = settings.jsearch_base_url
-        self.jsearch_header_host = settings.jsearch_header_host
+        self.base_url = settings.JSEARCH_BASE_URL
+        self.jsearch_header_host = settings.JSEARCH_HEADER_HOST
         self.headers = {
-            "x-rapidapi-host": self.jsearch_header_host,
-            "x-rapidapi-key": self.api_key,
+            "X-RapidAPI-Host": self.jsearch_header_host,
+            "X-RapidAPI-Key": self.api_key,
         }
 
     def _convert_to_job_details(self, jsearch_job: JSearchJob) -> JobDetails:

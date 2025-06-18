@@ -28,7 +28,7 @@ class TestPineconeStore:
         # Verify the mock was called correctly
         mock_index.upsert_records.assert_called_once()
         mock_index.upsert_records.assert_called_with(
-            "test_namespace",  # This matches the default from settings
+            "jobs",  # This matches the default from settings
             [
                 {
                     "id": sample_job_vector_stores[0].job_id,

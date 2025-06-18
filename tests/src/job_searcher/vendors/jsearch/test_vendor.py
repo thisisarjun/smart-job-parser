@@ -16,8 +16,8 @@ class TestJSearchVendorInit:
         vendor = JSearchVendor()  # pragma: allowlist secret
         assert vendor.api_key == "test_api_key"  # pragma: allowlist secret
         assert vendor.base_url == "https://jsearch.p.rapidapi.com"
-        assert vendor.headers["x-rapidapi-key"] == "test_api_key"
-        assert vendor.headers["x-rapidapi-host"] == "jsearch.p.rapidapi.com"
+        assert vendor.headers["X-RapidAPI-Key"] == "test_api_key"
+        assert vendor.headers["X-RapidAPI-Host"] == "jsearch.p.rapidapi.com"
 
 
 class TestJSearchVendorConversion:
