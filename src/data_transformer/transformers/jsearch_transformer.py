@@ -1,6 +1,6 @@
 from typing import List
 
-from src.data_transformer.base import BaseTransformer
+from src.data_transformer.interface import BaseTransformer
 from src.job_searcher.vendors.jsearch.models import Job
 from src.vector_store.models import JobVectorStore
 

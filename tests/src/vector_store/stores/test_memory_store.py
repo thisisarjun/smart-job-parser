@@ -40,7 +40,7 @@ class TestMemoryStore:
             mock_vector_store_class.return_value = mock_instance
 
             store = MemoryStore(embedding=mock_embedding)
-            store.add_job_details(sample_job_vector_store)
+            store.add_job_details([sample_job_vector_store])
 
             # Verify add_texts was called
             mock_instance.add_texts.assert_called_once()
@@ -76,7 +76,7 @@ class TestMemoryStore:
             mock_vector_store_class.return_value = mock_instance
 
             store = MemoryStore(embedding=mock_embedding)
-            store.add_job_details(minimal_job_vector_store)
+            store.add_job_details([minimal_job_vector_store])
 
             mock_instance.add_texts.assert_called_once()
 
@@ -100,7 +100,7 @@ class TestMemoryStore:
             mock_vector_store_class.return_value = mock_instance
 
             store = MemoryStore(embedding=mock_embedding)
-            store.add_job_details(sample_job_vector_store)
+            store.add_job_details([sample_job_vector_store])
 
             call_args = mock_instance.add_texts.call_args
             metadata = call_args[1]["metadatas"][0]
@@ -151,7 +151,7 @@ class TestMemoryStore:
 
             job = JobVectorStore(**job_data)
             store = MemoryStore(embedding=mock_embedding)
-            store.add_job_details(job)
+            store.add_job_details([job])
 
             mock_instance.add_texts.assert_called_once()
 
@@ -289,7 +289,7 @@ class TestMemoryStore:
 
             # Add multiple jobs
             for job in sample_job_vector_stores:
-                store.add_job_details(job)
+                store.add_job_details([job])
 
             # Verify add_texts was called for each job
             assert mock_instance.add_texts.call_count == len(sample_job_vector_stores)
@@ -313,7 +313,7 @@ class TestMemoryStore:
             store = MemoryStore(embedding=mock_embedding)
 
             # Add job
-            store.add_job_details(sample_job_vector_store)
+            store.add_job_details([sample_job_vector_store])
 
             # Search for job
             results = store.similarity_search("python developer")

@@ -1,0 +1,26 @@
+from typing import Any, Dict, Optional
+
+from src.data_transformer.service import DataTransformerService
+from src.job_searcher.models import JobDetails
+from src.job_searcher.service import JobSearchService
+from src.vector_store.service import VectorStoreService
+
+
+class JobSearchService:
+    def __init__(
+        self,
+        job_search_service: JobSearchService,
+        vector_store_service: VectorStoreService,
+        data_transformer_service: DataTransformerService,
+    ):
+        self.job_search_service = job_search_service
+        self.vector_store_service = vector_store_service
+
+    def search_relevant_jobs(
+        self, query: str, filters: Optional[Dict[str, Any]] = None
+    ) -> list[JobDetails]:
+        jobs = self.job_search_service.search_jobs(query, filters)
+        # transform jobs to job vector store
+        job_vector_stores = self.data_transformer_service.transform(jobs)
+        self.vector_store_service.add_job_details(job_vector_stores)
+        return jobs

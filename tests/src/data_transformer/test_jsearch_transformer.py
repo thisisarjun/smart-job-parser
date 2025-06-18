@@ -1,6 +1,6 @@
 import pytest
 
-from src.data_transformer.jsearch_transformer import JSearchTransformer
+from src.data_transformer.transformers.jsearch_transformer import JSearchTransformer
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.vector_store.models import JobVectorStore
 from tests.fixtures.jsearch_result import sample_jsearch_result

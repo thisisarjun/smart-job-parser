@@ -199,7 +199,7 @@ class TestVectorStoreServiceIntegration:
         service = VectorStoreService(vector_store=memory_store)
 
         # This should not raise an exception
-        service.add_job_details(sample_job_vector_store)
+        service.add_job_details([sample_job_vector_store])
 
         # This should return a list (even if empty due to mocked embedding)
         results = service.similarity_search("python developer")

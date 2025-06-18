@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List, Optional
 
 from langchain_core.embeddings import Embeddings
 
@@ -11,7 +11,7 @@ class VectorStore(ABC):
         self.embedding = embedding
 
     @abstractmethod
-    def add_job_details(self, job_details: JobVectorStore) -> None:
+    def add_job_details(self, job_details: List[JobVectorStore]) -> None:
         pass
 
     @abstractmethod

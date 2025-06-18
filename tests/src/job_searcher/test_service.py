@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -24,7 +24,7 @@ class TestJobSearchService:
         result = service.search_jobs(query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(query)
+        mock_vendor.search_jobs.assert_called_once_with(query, None)
 
     @pytest.mark.parametrize(
         "query",
@@ -45,7 +45,7 @@ class TestJobSearchService:
         result = service.search_jobs(query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(query)
+        mock_vendor.search_jobs.assert_called_once_with(query, None)
 
     def test_search_jobs_returns_empty_list(self, mock_vendor):
         """Test search_jobs when vendor returns empty list"""
@@ -56,7 +56,7 @@ class TestJobSearchService:
 
         assert result == []
         assert isinstance(result, list)
-        mock_vendor.search_jobs.assert_called_once_with("nonexistent job")
+        mock_vendor.search_jobs.assert_called_once_with("nonexistent job", None)
 
     def test_search_jobs_preserves_vendor_exceptions(self, mock_vendor):
         """Test that search_jobs preserves exceptions from vendor"""
@@ -74,7 +74,7 @@ class TestJobSearchService:
         result = service.search_jobs(query)
 
         # Verify the call was made with correct parameters
-        mock_vendor.search_jobs.assert_called_once_with(query)
+        mock_vendor.search_jobs.assert_called_once_with(query, None)
         # Verify the result is returned unchanged
         assert result == sample_job_details
         assert result is mock_vendor.search_jobs.return_value
@@ -87,7 +87,7 @@ class TestJobSearchService:
         result = service.search_jobs(complex_query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(complex_query)
+        mock_vendor.search_jobs.assert_called_once_with(complex_query, None)
 
     def test_search_jobs_with_empty_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with empty query string"""
@@ -96,7 +96,7 @@ class TestJobSearchService:
         result = service.search_jobs("")
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with("")
+        mock_vendor.search_jobs.assert_called_once_with("", None)
 
     def test_search_jobs_multiple_calls(self, mock_vendor, sample_job_details):
         """Test multiple calls to search_jobs"""
@@ -112,8 +112,8 @@ class TestJobSearchService:
 
         # Verify both calls were made
         assert mock_vendor.search_jobs.call_count == 2
-        mock_vendor.search_jobs.assert_any_call("python")
-        mock_vendor.search_jobs.assert_any_call("javascript")
+        mock_vendor.search_jobs.assert_any_call("python", None)
+        mock_vendor.search_jobs.assert_any_call("javascript", None)
 
     def test_search_jobs_with_none_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with None query - should return empty list"""
@@ -133,7 +133,7 @@ class TestJobSearchService:
         result = service.search_jobs(special_query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(special_query)
+        mock_vendor.search_jobs.assert_called_once_with(special_query, None)
 
     def test_search_jobs_with_unicode_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with Unicode characters in query"""
@@ -143,7 +143,7 @@ class TestJobSearchService:
         result = service.search_jobs(unicode_query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(unicode_query)
+        mock_vendor.search_jobs.assert_called_once_with(unicode_query, None)
 
     def test_search_jobs_with_very_long_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with very long query string"""
@@ -153,7 +153,7 @@ class TestJobSearchService:
         result = service.search_jobs(long_query)
 
         assert result == sample_job_details
-        mock_vendor.search_jobs.assert_called_once_with(long_query)
+        mock_vendor.search_jobs.assert_called_once_with(long_query, None)
 
     def test_service_vendor_attribute_immutable(self, mock_vendor):
         """Test that vendor attribute is properly set and accessible"""
@@ -172,7 +172,7 @@ class TestJobSearchService:
 
         result = service.search_jobs("test query")
 
-        mock_vendor.search_jobs.assert_called_once_with("test query")
+        mock_vendor.search_jobs.assert_called_once_with("test query", None)
         assert result is None
 
     def test_search_jobs_vendor_side_effect_exception_types(self, mock_vendor):
@@ -206,7 +206,9 @@ class TestJobSearchServiceIntegration:
         """Test with a more realistic vendor implementation"""
 
         class TestVendor(JobSearchVendor):
-            def search_jobs(self, query: str) -> List[JobDetails]:
+            def search_jobs(
+                self, query: str, filters: Optional[Dict[str, Any]] = None
+            ) -> List[JobDetails]:
                 return [
                     JobDetails(
                         title=f"Developer for {query}",
@@ -232,7 +234,7 @@ class TestJobSearchServiceIntegration:
         vendor = TestVendor()
         service = JobSearchService(vendor=vendor)
 
-        result = service.search_jobs("python")
+        result = service.search_jobs("python", filters={"location": "Remote"})
 
         assert len(result) == 1
         assert result[0].title == "Developer for python"
@@ -242,7 +244,9 @@ class TestJobSearchServiceIntegration:
         """Test service behavior with different vendor implementations"""
 
         class VendorA(JobSearchVendor):
-            def search_jobs(self, query: str) -> List[JobDetails]:
+            def search_jobs(
+                self, query: str, filters: Optional[Dict[str, Any]] = None
+            ) -> List[JobDetails]:
                 return [
                     JobDetails(
                         title="VendorA Job",
@@ -266,7 +270,9 @@ class TestJobSearchServiceIntegration:
                 return "vendor_a"
 
         class VendorB(JobSearchVendor):
-            def search_jobs(self, query: str) -> List[JobDetails]:
+            def search_jobs(
+                self, query: str, filters: Optional[Dict[str, Any]] = None
+            ) -> List[JobDetails]:
                 return [
                     JobDetails(
                         title="VendorB Job",
@@ -291,13 +297,13 @@ class TestJobSearchServiceIntegration:
 
         # Test with VendorA
         service_a = JobSearchService(vendor=VendorA())
-        result_a = service_a.search_jobs("test")
+        result_a = service_a.search_jobs("test", filters={"location": "Remote"})
         assert result_a[0].title == "VendorA Job"
         assert result_a[0].company == "Company A"
 
         # Test with VendorB
         service_b = JobSearchService(vendor=VendorB())
-        result_b = service_b.search_jobs("test")
+        result_b = service_b.search_jobs("test", filters={"location": "Remote"})
         assert result_b[0].title == "VendorB Job"
         assert result_b[0].company == "Company B"
 

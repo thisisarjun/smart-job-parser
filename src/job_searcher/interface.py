@@ -7,7 +7,7 @@ from src.job_searcher.models import JobDetails
 class JobSearchVendor(ABC):
     @abstractmethod
     def search_jobs(
-        self, query: str, filters: Optional[Dict[str, Any]]
+        self, query: Optional[str], filters: Optional[Dict[str, Any]] = None
     ) -> List[JobDetails]:
         pass
 

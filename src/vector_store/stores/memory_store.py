@@ -1,3 +1,5 @@
+from typing import List
+
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 
@@ -9,14 +11,15 @@ class MemoryStore(VectorStore):
     def __init__(self, embedding: Embeddings):
         self.vector_store = InMemoryVectorStore(embedding=embedding)
 
-    def add_job_details(self, job_details: JobVectorStore) -> None:
-        metadata = job_details.get_metadata()
-        metadata["job_description"] = job_details.job_description
-        metadata["location_string"] = job_details.location_string
+    def add_job_details(self, job_details: List[JobVectorStore]) -> None:
 
-        self.vector_store.add_texts(
-            texts=[job_details.get_combined_text_document()], metadatas=[metadata]
-        )
+        for job_detail in job_details:
+            metadata = job_detail.get_metadata()
+            metadata["job_description"] = job_detail.job_description
+            metadata["location_string"] = job_detail.location_string
+            self.vector_store.add_texts(
+                texts=[job_detail.get_combined_text_document()], metadatas=[metadata]
+            )
 
     def similarity_search(self, query: str) -> list[JobVectorStore]:
         documents = self.vector_store.similarity_search(query)

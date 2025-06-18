@@ -23,7 +23,7 @@ class TestPineconeStore:
         store = PineconeStore()
 
         # Now test the method
-        store.add_job_details(sample_job_vector_stores[0])
+        store.add_job_details([sample_job_vector_stores[0]])
 
         # Verify the mock was called correctly
         mock_index.upsert_records.assert_called_once()

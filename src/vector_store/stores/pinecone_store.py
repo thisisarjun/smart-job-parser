@@ -1,3 +1,5 @@
+from typing import List
+
 from pinecone import Index, Pinecone
 
 from config import settings
@@ -17,19 +19,19 @@ class PineconeStore(VectorStore):
         self.index = pc.Index(index_name)
         self.namespace = settings.pinecone_namespace
 
-    def add_job_details(self, job_details: JobVectorStore) -> None:
+    def add_job_details(self, job_details: List[JobVectorStore]) -> None:
         # TODO: better id
-        record_id = job_details.job_id
-        self.index.upsert_records(
-            self.namespace,
-            [
+        to_store_vector_stores = []
+        for job_detail in job_details:
+            record_id = job_detail.job_id
+            to_store_vector_stores.append(
                 {
                     "id": record_id,
-                    "description": job_details.get_combined_text_document(),
-                    **job_details.model_dump(),
+                    "description": job_detail.get_combined_text_document(),
+                    **job_detail.model_dump(),
                 }
-            ],
-        )
+            )
+        self.index.upsert_records(self.namespace, to_store_vector_stores)
 
     def similarity_search(self, query: str) -> list[JobVectorStore]:
         reranked_results = self.index.search(
