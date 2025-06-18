@@ -15,6 +15,7 @@ class JobSearchService:
     ):
         self.job_search_service = job_search_service
         self.vector_store_service = vector_store_service
+        self.data_transformer_service = data_transformer_service
 
     def search_relevant_jobs(
         self, query: str, filters: Optional[Dict[str, Any]] = None

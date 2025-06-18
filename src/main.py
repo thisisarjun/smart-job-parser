@@ -1,5 +1,6 @@
 from typing import Dict
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -39,6 +40,4 @@ async def health_check() -> Dict[str, str]:
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run(app, host=settings.host, port=settings.port)

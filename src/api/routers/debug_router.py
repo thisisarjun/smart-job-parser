@@ -1,20 +1,21 @@
 from typing import Any, Dict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from src.api.dependencies import get_jsearch_vendor, get_vector_store_service
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
 from src.vector_store.models import JobVectorStore
 from src.vector_store.service import VectorStoreService
-from src.vector_store.stores.pinecone_store import PineconeStore
 
 router = APIRouter()
 
-vector_store_service = VectorStoreService(PineconeStore())
-jsearch_vendor = JSearchVendor()
-
 
 @router.post("/debug/vector_store/add_job_details")
-async def debug_add_job_details() -> Dict[str, str]:
+async def debug_add_job_details(
+    vector_store_service: VectorStoreService = Depends(  # noqa: B008
+        get_vector_store_service
+    ),
+) -> Dict[str, str]:
     vector_store_service.add_job_details(
         job_details=JobVectorStore(
             job_id="2",
@@ -35,7 +36,11 @@ async def debug_add_job_details() -> Dict[str, str]:
 
 
 @router.get("/debug/vector_store/similarity_search")
-async def debug_similarity_search() -> Any:
+async def debug_similarity_search(
+    vector_store_service: VectorStoreService = Depends(  # noqa: B008
+        get_vector_store_service
+    ),
+) -> Any:
     results = vector_store_service.similarity_search(
         query="We are looking for a software engineer with 3 years of experience in Python and Django."  # noqa: E501
     )
@@ -43,7 +48,9 @@ async def debug_similarity_search() -> Any:
 
 
 @router.get("/debug/job_searcher/search_jobs")
-async def debug_search_jobs() -> Any:
+async def debug_search_jobs(
+    jsearch_vendor: JSearchVendor = Depends(get_jsearch_vendor),  # noqa: B008
+) -> Any:
     results = jsearch_vendor.search_jobs(
         query="Senior Software Engineer visa sponsorship",  # noqa: E501
         filters={"country": "de"},
