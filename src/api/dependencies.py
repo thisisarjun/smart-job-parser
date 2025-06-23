@@ -1,12 +1,12 @@
 from functools import lru_cache
 
-from src.data_transformer.service import DataTransformerService
-from src.data_transformer.transformers.jsearch_transformer import JSearchTransformer
 from src.job_searcher.service import JobSearcher
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
 from src.services.job_search_service import JobSearchService
 from src.vector_store.service import VectorStoreService
 from src.vector_store.stores.pinecone_store import PineconeStore
+from src.vector_transformer.service import DataTransformerService
+from src.vector_transformer.transformers.jsearch_transformer import JSearchTransformer
 
 
 @lru_cache()
