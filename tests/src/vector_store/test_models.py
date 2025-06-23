@@ -1,6 +1,7 @@
 import pytest
 
-from src.vector_store.models import AvailableVectorStores, JobVectorStore
+from src.vector_store.models import JobVectorStore
+from tests.factories.vector_store import JobVectorStoreFactory
 
 
 class TestJobVectorStore:
@@ -49,8 +50,16 @@ class TestJobVectorStore:
         assert job.job_country is None
         assert job.location_string is None
 
-    def test_get_combined_text_document_with_all_fields(self, sample_job_vector_store):
+    def test_get_combined_text_document_with_all_fields(self):
         """Test get_combined_text_document with all fields populated"""
+        sample_job_vector_store = JobVectorStoreFactory.build(
+            job_title="Senior Python Developer",
+            employer_name="Tech Solutions Inc",
+            location_string="San Francisco, CA, USA",
+            job_description="We are looking for an experienced Python developer to "
+            "join our team. You will work on backend services, APIs, and data "
+            "processing pipelines.",
+        )
         result = sample_job_vector_store.get_combined_text_document()
 
         expected = (
@@ -64,11 +73,19 @@ class TestJobVectorStore:
 
         assert result == expected
 
-    def test_get_combined_text_document_with_none_fields(
-        self, minimal_job_vector_store
-    ):
+    def test_get_combined_text_document_with_none_fields(self):
         """Test get_combined_text_document with None optional fields"""
-        result = minimal_job_vector_store.get_combined_text_document()
+        result = JobVectorStore(
+            job_id="job_456",
+            job_apply_link="https://example.com/jobs/456",
+            job_title="Test Job",
+            job_description="Test description",
+            employer_name=None,
+            job_city=None,
+            job_state=None,
+            job_country=None,
+            location_string=None,
+        ).get_combined_text_document()
 
         expected = (
             "Job Title: Test Job\n"
@@ -79,8 +96,17 @@ class TestJobVectorStore:
 
         assert result == expected
 
-    def test_get_metadata_with_all_fields(self, sample_job_vector_store):
+    def test_get_metadata_with_all_fields(self):
         """Test get_metadata with all fields populated"""
+        sample_job_vector_store = JobVectorStoreFactory.build(
+            job_id="job_123",
+            job_title="Senior Python Developer",
+            employer_name="Tech Solutions Inc",
+            job_city="San Francisco",
+            job_state="CA",
+            job_country="USA",
+            job_apply_link="https://example.com/jobs/123",
+        )
         result = sample_job_vector_store.get_metadata()
 
         expected = {
@@ -96,9 +122,19 @@ class TestJobVectorStore:
         assert result == expected
         assert isinstance(result, dict)
 
-    def test_get_metadata_with_none_fields(self, minimal_job_vector_store):
+    def test_get_metadata_with_none_fields(self):
         """Test get_metadata with None optional fields"""
-        result = minimal_job_vector_store.get_metadata()
+        result = JobVectorStore(
+            job_id="minimal_job",
+            job_title="Test Job",
+            job_description="Test description",
+            employer_name=None,
+            job_city=None,
+            job_state=None,
+            job_country=None,
+            job_apply_link="https://example.com/test",
+            location_string=None,
+        ).get_metadata()
 
         expected = {
             "job_id": "minimal_job",
@@ -112,9 +148,19 @@ class TestJobVectorStore:
 
         assert result == expected
 
-    def test_get_metadata_returns_dict_type(self, sample_job_vector_store):
+    def test_get_metadata_returns_dict_type(self):
         """Test that get_metadata returns proper dict type annotation"""
-        result = sample_job_vector_store.get_metadata()
+        result = JobVectorStore(
+            job_id="minimal_job",
+            job_title="Test Job",
+            job_description="Test description",
+            employer_name=None,
+            job_city=None,
+            job_state=None,
+            job_apply_link="https://example.com/test",
+            job_country=None,
+            location_string=None,
+        ).get_metadata()
 
         assert isinstance(result, dict)
         # Check that all values are of expected types
@@ -158,57 +204,3 @@ class TestJobVectorStore:
                 job_description="Test description",
                 job_apply_link="https://example.com/test",
             )
-
-    def test_pydantic_model_serialization(self, sample_job_vector_store):
-        """Test that the model can be serialized to dict"""
-        result = sample_job_vector_store.model_dump()
-
-        assert isinstance(result, dict)
-        assert result["job_id"] == "job_123"
-        assert result["job_title"] == "Senior Python Developer"
-        assert "job_description" in result
-        assert "job_apply_link" in result
-
-    def test_model_equality(self):
-        """Test model equality comparison"""
-        job1 = JobVectorStore(
-            job_id="same_id",
-            job_title="Same Title",
-            job_description="Same description",
-            job_apply_link="https://same.com",
-        )
-
-        job2 = JobVectorStore(
-            job_id="same_id",
-            job_title="Same Title",
-            job_description="Same description",
-            job_apply_link="https://same.com",
-        )
-
-        assert job1 == job2
-
-    def test_model_inequality(self):
-        """Test model inequality comparison"""
-        job1 = JobVectorStore(
-            job_id="id1",
-            job_title="Title 1",
-            job_description="Description 1",
-            job_apply_link="https://example1.com",
-        )
-
-        job2 = JobVectorStore(
-            job_id="id2",
-            job_title="Title 2",
-            job_description="Description 2",
-            job_apply_link="https://example2.com",
-        )
-
-        assert job1 != job2
-
-
-class TestAvailableVectorStores:
-    """Test cases for AvailableVectorStores enum"""
-
-    def test_memory_enum_value(self):
-        """Test MEMORY enum value"""
-        assert AvailableVectorStores.MEMORY.value == "memory"

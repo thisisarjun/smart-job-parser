@@ -49,6 +49,7 @@ extend-ignore = [
     "I201",  # Missing newline between import groups
     "E402",  # module level import not at top of file (for sys.path.append cases)
     "W292",  # no newline at end of file
+    "B008",  # Do not perform function calls in argument defaults
 ]
 per-file-ignores = [
     "tests/fixtures/*:E501",  # Ignore line length in fixture files

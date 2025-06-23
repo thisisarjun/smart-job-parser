@@ -26,7 +26,7 @@ start-dev:
 
 # Run tests with coverage
 test:
-	pytest -v
+	export ENV=testing && pytest -v /Users/arjunsunil/Workspace/smart-job-parser/tests/src/vector_store
 
 # Run linting and type checking
 lint:

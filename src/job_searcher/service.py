@@ -4,7 +4,7 @@ from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
 
 
-class JobSearchService:
+class JobSearcher:
     def __init__(self, vendor: JobSearchVendor):
         self.vendor = vendor
 

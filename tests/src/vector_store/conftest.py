@@ -9,74 +9,19 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from src.vector_store.models import AvailableVectorStores, JobVectorStore
 from src.vector_store.service import VectorStoreService
 from src.vector_store.stores.memory_store import MemoryStore
+from tests.factories.vector_store import JobVectorStoreFactory
 
 
 @pytest.fixture
 def sample_job_vector_store() -> JobVectorStore:
     """Sample JobVectorStore for testing"""
-    return JobVectorStore(
-        job_id="job_123",
-        job_title="Senior Python Developer",
-        job_description=(
-            "We are looking for an experienced Python developer to join our "
-            "team. You will work on backend services, APIs, and data "
-            "processing pipelines."
-        ),
-        job_apply_link="https://example.com/jobs/123",
-        employer_name="Tech Solutions Inc",
-        job_city="San Francisco",
-        job_state="CA",
-        job_country="USA",
-        location_string="San Francisco, CA, USA",
-    )
+    return JobVectorStoreFactory.build()
 
 
 @pytest.fixture
 def sample_job_vector_stores() -> List[JobVectorStore]:
     """Multiple sample JobVectorStore objects for testing"""
-    return [
-        JobVectorStore(
-            job_id="job_123",
-            job_title="Senior Python Developer",
-            job_description=(
-                "We are looking for an experienced Python developer to "
-                "join our team."
-            ),
-            job_apply_link="https://example.com/jobs/123",
-            employer_name="Tech Solutions Inc",
-            job_city="San Francisco",
-            job_state="CA",
-            job_country="USA",
-            location_string="San Francisco, CA, USA",
-        ),
-        JobVectorStore(
-            job_id="job_456",
-            job_title="Frontend React Developer",
-            job_description=(
-                "Join our frontend team to build amazing user interfaces " "with React."
-            ),
-            job_apply_link="https://example.com/jobs/456",
-            employer_name="Web Innovations LLC",
-            job_city="New York",
-            job_state="NY",
-            job_country="USA",
-            location_string="New York, NY, USA",
-        ),
-        JobVectorStore(
-            job_id="job_789",
-            job_title="Data Scientist",
-            job_description=(
-                "Analyze data and build machine learning models for "
-                "business insights."
-            ),
-            job_apply_link="https://example.com/jobs/789",
-            employer_name="Data Corp",
-            job_city="Austin",
-            job_state="TX",
-            job_country="USA",
-            location_string="Austin, TX, USA",
-        ),
-    ]
+    return JobVectorStoreFactory.batch(5)
 
 
 @pytest.fixture
@@ -89,31 +34,14 @@ def mock_embedding() -> Mock:
 
 
 @pytest.fixture
-def mock_langchain_vector_store() -> Mock:
+def mock_langchain_vector_store(sample_job_vector_store: JobVectorStore) -> Mock:
     """Mock LangChain InMemoryVectorStore for testing"""
     mock_store = Mock(spec=InMemoryVectorStore)
     mock_store.add_texts.return_value = ["doc_id_1"]
     mock_store.similarity_search.return_value = [
         Document(
-            page_content=(
-                "Job Title: Senior Python Developer\nCompany: Tech Solutions "
-                "Inc\nLocation: San Francisco, CA, USA\n\nDescription: We are "
-                "looking for an experienced Python developer to join our team."
-            ),
-            metadata={
-                "job_id": "job_123",
-                "job_title": "Senior Python Developer",
-                "employer_name": "Tech Solutions Inc",
-                "job_city": "San Francisco",
-                "job_state": "CA",
-                "job_country": "USA",
-                "job_apply_link": "https://example.com/jobs/123",
-                "job_description": (
-                    "We are looking for an experienced Python developer to "
-                    "join our team."
-                ),
-                "location_string": "San Francisco, CA, USA",
-            },
+            page_content=sample_job_vector_store.get_combined_text_document(),
+            metadata=sample_job_vector_store.get_metadata(),
         )
     ]
     return mock_store
@@ -136,9 +64,10 @@ def vector_store_service(mock_embedding) -> VectorStoreService:
 @pytest.fixture
 def minimal_job_vector_store() -> JobVectorStore:
     """Minimal JobVectorStore with only required fields"""
-    return JobVectorStore(
-        job_id="minimal_job",
-        job_title="Test Job",
-        job_description="Test description",
-        job_apply_link="https://example.com/test",
+    return JobVectorStoreFactory.build(
+        employer_name=None,
+        job_city=None,
+        job_state=None,
+        job_country=None,
+        location_string=None,
     )

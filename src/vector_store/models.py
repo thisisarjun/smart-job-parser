@@ -4,6 +4,7 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 
+# TODO: make this in par with JobDetails
 class JobVectorStore(BaseModel):
     job_id: str
     job_title: str

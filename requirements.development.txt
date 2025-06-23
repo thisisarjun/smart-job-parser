@@ -6,6 +6,7 @@ pytest-cov==4.1.0
 pytest-asyncio==0.23.5
 pytest-mock==3.13.0
 pytest-env==1.1.5
+polyfactory==2.21.0
 
 # Development
 black==24.2.0

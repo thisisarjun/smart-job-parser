@@ -1,3 +1,5 @@
+import os
+from contextlib import asynccontextmanager
 from typing import Dict
 
 import uvicorn
@@ -8,10 +10,23 @@ from config import settings
 from src.api.routers.debug_router import router as debug_router
 from src.api.routers.text_processor_router import router as text_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print(
+        f"🚀 Starting {settings.PROJECT_NAME} on {settings.HOST}:{settings.PORT} | ENV: {os.getenv('ENV')}"  # noqa: E501
+    )
+    yield
+    # Shutdown
+    print("👋 Shutting down...")
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="API for parsing and processing job data",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Configure CORS

@@ -5,6 +5,7 @@ from langchain_core.documents import Document
 
 from src.vector_store.models import JobVectorStore
 from src.vector_store.stores.memory_store import MemoryStore
+from tests.factories.vector_store import JobVectorStoreFactory
 
 
 class TestMemoryStore:
@@ -65,9 +66,7 @@ class TestMemoryStore:
             )
             assert metadatas[0] == expected_metadata
 
-    def test_add_job_details_with_minimal_job(
-        self, mock_embedding, minimal_job_vector_store
-    ):
+    def test_add_job_details_with_minimal_job(self, mock_embedding):
         """Test add_job_details with minimal job data"""
         with patch(
             "src.vector_store.stores.memory_store.InMemoryVectorStore"
@@ -76,6 +75,15 @@ class TestMemoryStore:
             mock_vector_store_class.return_value = mock_instance
 
             store = MemoryStore(embedding=mock_embedding)
+            minimal_job_vector_store = JobVectorStoreFactory.build(
+                job_id="minimal_job",
+                job_description="Test description",
+                employer_name=None,
+                job_city=None,
+                job_state=None,
+                job_country=None,
+                location_string=None,
+            )
             store.add_job_details([minimal_job_vector_store])
 
             mock_instance.add_texts.assert_called_once()

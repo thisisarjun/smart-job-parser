@@ -4,11 +4,8 @@ import pytest
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 
-from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
-from src.job_searcher.vendors.jsearch.models import SearchResponse
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
 from src.text_processor.text_processor_service import TextProcessor
-from tests.fixtures.jsearch_result import sample_jsearch_result
 
 
 @pytest.fixture
@@ -22,25 +19,6 @@ def jsearch_vendor(mock_api_key):
     """Create JSearchVendor instance with mock API key"""
     with patch.dict("os.environ", {"JSEARCH_API_KEY": mock_api_key}):
         return JSearchVendor()
-
-
-@pytest.fixture
-def sample_jsearch_response():
-    """Real JSearch API response data for testing"""
-    return sample_jsearch_result
-
-
-@pytest.fixture
-def sample_jsearch_job():
-    """Sample JSearch job data from real API response"""
-    job_data = sample_jsearch_result["data"][0]  # First job from the sample
-    return JSearchJob(**job_data)
-
-
-@pytest.fixture
-def sample_search_response():
-    """Sample search response using real data"""
-    return SearchResponse(**sample_jsearch_result)
 
 
 @pytest.fixture

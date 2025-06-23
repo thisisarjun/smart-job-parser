@@ -1,4 +1,5 @@
 # TODO: make everything async
+import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -8,6 +9,13 @@ from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.models import SearchParams, SearchResponse
+
+# TODO: remove this
+logging.basicConfig(
+    format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG,
+)
 
 
 class JSearchVendor(JobSearchVendor):
@@ -24,18 +32,22 @@ class JSearchVendor(JobSearchVendor):
         self.base_url = settings.JSEARCH_BASE_URL
         self.jsearch_header_host = settings.JSEARCH_HEADER_HOST
         self.headers = {
-            "X-RapidAPI-Host": self.jsearch_header_host,
-            "X-RapidAPI-Key": self.api_key,
+            "x-rapidapi-host": self.jsearch_header_host,
+            "x-rapidapi-key": self.api_key,
         }
 
     def _convert_to_job_details(self, jsearch_job: JSearchJob) -> JobDetails:
         """Convert JSearch job to JobDetails model"""
         return JobDetails(
+            job_id=jsearch_job.job_id,
             title=jsearch_job.job_title,
             description=jsearch_job.job_description,
             location=jsearch_job.location_string,
             company=jsearch_job.employer_name or "Unknown Company",
             job_url=jsearch_job.job_apply_link,
+            country=jsearch_job.job_country,
+            city=jsearch_job.job_city,
+            state=jsearch_job.job_state,
         )
 
     def search_jobs(
@@ -50,9 +62,11 @@ class JSearchVendor(JobSearchVendor):
             # Make synchronous request
             with httpx.Client() as client:
                 query_params = search_params.to_jsearch_params()
-
                 query_params.update({"date_posted": "all"})
-
+                # TODO: remove this
+                logging.info(f"Query params: {query_params}")
+                logging.info(f"Headers: {self.headers}")
+                logging.info(f"Base URL: {self.base_url}")
                 response = client.get(
                     f"{self.base_url}/search",
                     headers=self.headers,

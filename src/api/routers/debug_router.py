@@ -2,8 +2,13 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends
 
-from src.api.dependencies import get_jsearch_vendor, get_vector_store_service
+from src.api.dependencies import (
+    get_job_search_service,
+    get_jsearch_vendor,
+    get_vector_store_service,
+)
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
+from src.services.job_search_service import JobSearchService
 from src.vector_store.models import JobVectorStore
 from src.vector_store.service import VectorStoreService
 
@@ -54,5 +59,20 @@ async def debug_search_jobs(
     results = jsearch_vendor.search_jobs(
         query="Senior Software Engineer visa sponsorship",  # noqa: E501
         filters={"country": "de"},
+    )
+    return results
+
+
+@router.get("/debug/job_searcher/search_relevant_jobs")
+async def debug_search_relevant_jobs(
+    query: str,
+    country: str,
+    job_search_service: JobSearchService = Depends(
+        get_job_search_service
+    ),  # noqa: B008
+) -> Any:
+    results = job_search_service.search_relevant_jobs(
+        query=query,
+        filters={"country": country},
     )
     return results

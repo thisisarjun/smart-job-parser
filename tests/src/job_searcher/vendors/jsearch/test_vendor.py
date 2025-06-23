@@ -6,6 +6,10 @@ import pytest
 from src.job_searcher.models import JobDetails
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
+from tests.factories.search_vendors import (
+    JSearchJobFactory,
+    JSearchSearchResponseFactory,
+)
 
 
 class TestJSearchVendorInit:
@@ -16,25 +20,38 @@ class TestJSearchVendorInit:
         vendor = JSearchVendor()  # pragma: allowlist secret
         assert vendor.api_key == "test_api_key"  # pragma: allowlist secret
         assert vendor.base_url == "https://jsearch.p.rapidapi.com"
-        assert vendor.headers["X-RapidAPI-Key"] == "test_api_key"
-        assert vendor.headers["X-RapidAPI-Host"] == "jsearch.p.rapidapi.com"
+        assert vendor.headers["x-rapidapi-key"] == "test_api_key"
+        assert vendor.headers["x-rapidapi-host"] == "jsearch.p.rapidapi.com"
 
 
 class TestJSearchVendorConversion:
     """Test job conversion methods"""
 
-    def test_convert_to_job_details(self, jsearch_vendor, sample_jsearch_job):
+    def test_convert_to_job_details(self, jsearch_vendor):
+        sample_jsearch_job = JSearchJobFactory.build(
+            job_title="Software Developer",
+            job_description="never been a more exciting time to join United Airlines",
+            job_city="Chicago",
+            job_state="Illinois",
+            job_country="US",
+            job_apply_link="https://careers.united.com/us/en/job/WHQ00024224/Software-Developer?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",  # noqa: E501
+            employer_name="United Airlines",
+        )
         """Test conversion from JSearch job to JobDetails"""
         job_details = jsearch_vendor._convert_to_job_details(sample_jsearch_job)
 
         assert isinstance(job_details, JobDetails)
         assert job_details.title == "Software Developer"
         assert (
-            "never been a more exciting time to join United Airlines"
-            in job_details.description
+            job_details.description
+            == "never been a more exciting time to join United Airlines"
         )
         assert job_details.location == "Chicago, Illinois, US"
         assert job_details.company == "United Airlines"
+        assert (
+            job_details.job_url
+            == "https://careers.united.com/us/en/job/WHQ00024224/Software-Developer?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic"  # noqa: E501
+        )
         expected_url = (
             "https://careers.united.com/us/en/job/WHQ00024224/"
             "Software-Developer?utm_campaign=google_jobs_apply"
@@ -60,9 +77,15 @@ class TestJSearchVendorSearchJobs:
     """Test search_jobs method"""
 
     @patch("httpx.Client")
-    def test_search_jobs_success(
-        self, mock_client_class, jsearch_vendor, sample_search_response
-    ):
+    def test_search_jobs_success(self, mock_client_class, jsearch_vendor):
+        sample_search_response = JSearchSearchResponseFactory.build(
+            data=[
+                JSearchJobFactory.build(
+                    job_title="Software Developer",
+                    job_description="never been a more exciting time to join United Airlines",  # noqa: E501
+                )
+            ]
+        )
         """Test successful job search"""
         # Setup mock
         mock_client = MagicMock()
@@ -77,7 +100,7 @@ class TestJSearchVendorSearchJobs:
         result = jsearch_vendor.search_jobs("software engineer", {"country": "us"})
 
         # Verify
-        assert len(result) == 10
+        assert len(result) == 1
         assert isinstance(result[0], JobDetails)
         assert result[0].title == "Software Developer"
 
@@ -127,9 +150,11 @@ class TestJSearchVendorGetJobDetails:
     """Test get_job_details method"""
 
     @patch("httpx.Client")
-    def test_get_job_details_success(
-        self, mock_client_class, jsearch_vendor, sample_jsearch_job
-    ):
+    def test_get_job_details_success(self, mock_client_class, jsearch_vendor):
+        sample_jsearch_job = JSearchJobFactory.build(
+            job_title="Software Developer",
+            job_description="never been a more exciting time to join United Airlines",
+        )
         """Test successful job details retrieval"""
         # Setup mock
         mock_client = MagicMock()

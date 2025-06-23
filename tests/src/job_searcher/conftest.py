@@ -5,27 +5,13 @@ import pytest
 
 from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
+from tests.factories.job_searcher import JobDetailsFactory
 
 
 @pytest.fixture
 def sample_job_details() -> List[JobDetails]:
     """Sample job details for testing"""
-    return [
-        JobDetails(
-            title="Software Developer",
-            description="Develop software applications",
-            location="Chicago, IL",
-            company="Tech Corp",
-            job_url="https://example.com/job1",
-        ),
-        JobDetails(
-            title="Frontend Developer",
-            description="Build user interfaces",
-            location="New York, NY",
-            company="Web Solutions",
-            job_url="https://example.com/job2",
-        ),
-    ]
+    return JobDetailsFactory.batch(5)
 
 
 @pytest.fixture
