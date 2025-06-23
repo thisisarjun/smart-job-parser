@@ -5,8 +5,7 @@ from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
 from src.services.job_search_service import JobSearchService
 from src.vector_store.service import VectorStoreService
 from src.vector_store.stores.pinecone_store import PineconeStore
-from src.vector_transformer.service import DataTransformerService
-from src.vector_transformer.transformers.jsearch_transformer import JSearchTransformer
+from src.vector_store.vector_transformer.service import VectorTransformerService
 
 
 @lru_cache()
@@ -23,9 +22,9 @@ def get_jsearch_vendor() -> JSearchVendor:
 
 
 @lru_cache()
-def get_data_transformer_service() -> DataTransformerService:
-    """Dependency to get DataTransformerService instance"""
-    return DataTransformerService(JSearchTransformer())
+def get_vector_transformer_service() -> VectorTransformerService:
+    """Dependency to get VectorTransformerService instance"""
+    return VectorTransformerService()
 
 
 @lru_cache()
@@ -40,5 +39,5 @@ def get_job_search_service() -> JobSearchService:
     return JobSearchService(
         job_searcher=get_job_searcher(),
         vector_store_service=get_vector_store_service(),
-        data_transformer_service=get_data_transformer_service(),
+        vector_transformer_service=get_vector_transformer_service(),
     )
