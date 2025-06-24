@@ -2,15 +2,33 @@ from typing import Any, Dict, List, Optional
 
 from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class JobSearcher:
     def __init__(self, vendor: JobSearchVendor):
         self.vendor = vendor
+        logger.info(f"JobSearcher initialized with vendor: {vendor.get_vendor_name()}")
 
-    def search_jobs(
-        self, query: Optional[str], filters: Optional[Dict[str, Any]] = None
-    ) -> List[JobDetails]:
+    def search_jobs(self, query: Optional[str], filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+        logger.debug(f"Searching jobs with query: '{query}', filters: {filters}")
+
         if query is None:
+            logger.warning("Search query is None, returning empty results")
             return []
-        return self.vendor.search_jobs(query, filters)
+
+        try:
+            results = self.vendor.search_jobs(query, filters)
+
+            # Handle case where vendor returns None
+            if results is None:
+                logger.warning(f"Vendor returned None for query: '{query}', returning empty list")
+                return []
+
+            logger.info(f"Found {len(results)} jobs for query: '{query}'")
+            return results
+        except Exception as e:
+            logger.error(f"Error searching jobs for query '{query}': {str(e)}")
+            raise

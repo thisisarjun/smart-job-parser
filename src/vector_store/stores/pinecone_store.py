@@ -31,6 +31,10 @@ class PineconeStore(VectorStore):
                     **job_detail.model_dump(),
                 }
             )
+        # remove None values in to_store_vector_stores
+        to_store_vector_stores = [
+            {k: v for k, v in record.items() if v is not None} for record in to_store_vector_stores
+        ]
         self.index.upsert_records(self.namespace, to_store_vector_stores)
 
     def similarity_search(self, query: str) -> list[JobVectorStore]:

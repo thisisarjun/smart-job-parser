@@ -9,17 +9,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from src.api.routers.debug_router import router as debug_router
 from src.api.routers.text_processor_router import router as text_router
+from src.logger import get_logger, setup_logging_from_env
+
+# Setup logging
+setup_logging_from_env()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print(
-        f"🚀 Starting {settings.PROJECT_NAME} on {settings.HOST}:{settings.PORT} | ENV: {os.getenv('ENV')}"  # noqa: E501
-    )
+    logger.info(f"🚀 Starting {settings.PROJECT_NAME} on {settings.HOST}:{settings.PORT} | ENV: {os.getenv('ENV')}")
     yield
     # Shutdown
-    print("👋 Shutting down...")
+    logger.info("👋 Shutting down...")
 
 
 app = FastAPI(
@@ -45,14 +48,17 @@ app.include_router(debug_router)
 
 @app.get("/")
 async def root() -> Dict[str, str]:
+    logger.debug("Root endpoint accessed")
     return {"message": f"{settings.PROJECT_NAME} is running!"}
 
 
 @app.get("/health")
 async def health_check() -> Dict[str, str]:
     """Health check endpoint for deployment monitoring"""
+    logger.debug("Health check endpoint accessed")
     return {"status": "healthy", "message": "API is operational"}
 
 
 if __name__ == "__main__":
+    logger.info(f"Starting application server on {settings.HOST}:{settings.PORT}")
     uvicorn.run(app, host=settings.HOST, port=settings.PORT)

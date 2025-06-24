@@ -32,10 +32,8 @@ class TestPineconeStore:
             [
                 {
                     "id": sample_job_vector_stores[0].job_id,
-                    "description": sample_job_vector_stores[
-                        0
-                    ].get_combined_text_document(),
-                    **sample_job_vector_stores[0].model_dump(),
+                    "description": sample_job_vector_stores[0].get_combined_text_document(),
+                    **sample_job_vector_stores[0].model_dump(exclude_none=True),
                 }
             ],
         )

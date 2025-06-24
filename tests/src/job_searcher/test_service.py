@@ -37,9 +37,7 @@ class TestJobSearcher:
             "java spring boot",
         ],
     )
-    def test_search_jobs_with_different_queries(
-        self, mock_vendor, sample_job_details, query
-    ):
+    def test_search_jobs_with_different_queries(self, mock_vendor, sample_job_details, query):
         """Test search_jobs with various query strings"""
         service = JobSearcher(vendor=mock_vendor)
 
@@ -174,7 +172,7 @@ class TestJobSearcher:
         result = service.search_jobs("test query")
 
         mock_vendor.search_jobs.assert_called_once_with("test query", None)
-        assert result is None
+        assert result == []
 
     def test_search_jobs_vendor_side_effect_exception_types(self, mock_vendor):
         """Test different exception types from vendor"""
@@ -207,9 +205,7 @@ class TestJobSearcherIntegration:
         """Test with a more realistic vendor implementation"""
 
         class TestVendor(JobSearchVendor):
-            def search_jobs(
-                self, query: str, filters: Optional[Dict[str, Any]] = None
-            ) -> List[JobDetails]:
+            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
                 return [
                     JobDetailsFactory.build(
                         title="Developer for python",
@@ -239,9 +235,7 @@ class TestJobSearcherIntegration:
         """Test service behavior with different vendor implementations"""
 
         class VendorA(JobSearchVendor):
-            def search_jobs(
-                self, query: str, filters: Optional[Dict[str, Any]] = None
-            ) -> List[JobDetails]:
+            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
                 return [
                     JobDetailsFactory.build(
                         title="VendorA Detail",
@@ -265,9 +259,7 @@ class TestJobSearcherIntegration:
                 return "vendor_a"
 
         class VendorB(JobSearchVendor):
-            def search_jobs(
-                self, query: str, filters: Optional[Dict[str, Any]] = None
-            ) -> List[JobDetails]:
+            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
                 return [
                     JobDetailsFactory.build(
                         title="VendorB Detail",
