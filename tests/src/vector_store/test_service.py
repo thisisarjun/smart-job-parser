@@ -84,9 +84,7 @@ class TestVectorStoreService:
         mock_store.similarity_search.assert_called_once_with(query)
         assert result == []
 
-    def test_similarity_search_returns_job_vector_stores(
-        self, sample_job_vector_stores
-    ):
+    def test_similarity_search_returns_job_vector_stores(self, sample_job_vector_stores):
         """Test that similarity_search returns list of JobVectorStore objects"""
         mock_store = Mock(spec=MemoryStore)
         mock_store.similarity_search.return_value = sample_job_vector_stores
@@ -191,9 +189,7 @@ class TestVectorStoreService:
 class TestVectorStoreServiceIntegration:
     """Integration tests for VectorStoreService"""
 
-    def test_service_with_real_memory_store(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_service_with_real_memory_store(self, mock_embedding, sample_job_vector_store):
         """Test service with actual MemoryStore instance (not mocked)"""
         memory_store = MemoryStore(embedding=mock_embedding)
         service = VectorStoreService(vector_store=memory_store)

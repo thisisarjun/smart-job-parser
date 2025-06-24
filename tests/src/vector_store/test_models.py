@@ -87,12 +87,7 @@ class TestJobVectorStore:
             location_string=None,
         ).get_combined_text_document()
 
-        expected = (
-            "Job Title: Test Job\n"
-            "Company: None\n"
-            "Location: None\n\n"
-            "Description: Test description"
-        )
+        expected = "Job Title: Test Job\n" "Company: None\n" "Location: None\n\n" "Description: Test description"
 
         assert result == expected
 

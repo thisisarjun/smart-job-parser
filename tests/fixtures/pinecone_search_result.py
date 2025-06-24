@@ -1,10 +1,6 @@
 from pinecone.core.openapi.db_data.model.hit import Hit
-from pinecone.core.openapi.db_data.model.search_records_response import (
-    SearchRecordsResponse,
-)
-from pinecone.core.openapi.db_data.model.search_records_response_result import (
-    SearchRecordsResponseResult,
-)
+from pinecone.core.openapi.db_data.model.search_records_response import SearchRecordsResponse
+from pinecone.core.openapi.db_data.model.search_records_response_result import SearchRecordsResponseResult
 from pinecone.core.openapi.db_data.model.search_usage import SearchUsage
 
 pinecone_search_result = SearchRecordsResponse(

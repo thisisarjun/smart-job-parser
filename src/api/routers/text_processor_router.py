@@ -16,13 +16,9 @@ router = APIRouter(
 
 # Request model
 class TextProcessRequest(BaseModel):
-    text: str = Field(
-        ..., description="Text to be processed (split, embedded, and stored)"
-    )
+    text: str = Field(..., description="Text to be processed (split, embedded, and stored)")
     query: str = Field(..., description="Query to search in the processed text")
-    chunk_size: int = Field(
-        1000, description="Maximum size of each chunk", ge=1, le=10000
-    )
+    chunk_size: int = Field(1000, description="Maximum size of each chunk", ge=1, le=10000)
     chunk_overlap: int = Field(200, description="Overlap between chunks", ge=0, le=1000)
 
 

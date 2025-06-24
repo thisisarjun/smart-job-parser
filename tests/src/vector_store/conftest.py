@@ -56,9 +56,7 @@ def memory_store(mock_embedding) -> MemoryStore:
 @pytest.fixture
 def vector_store_service(mock_embedding) -> VectorStoreService:
     """Create VectorStoreService instance for testing"""
-    return VectorStoreService(
-        vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding
-    )
+    return VectorStoreService(vector_store_type=AvailableVectorStores.MEMORY, embedding=mock_embedding)
 
 
 @pytest.fixture

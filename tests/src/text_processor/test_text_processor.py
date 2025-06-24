@@ -24,9 +24,7 @@ class TestSplitText:
         expected_min_chunks,
     ):
         """Test split_text with different chunk sizes and overlaps"""
-        result = mock_text_processor.split_text(
-            sample_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap
-        )
+        result = mock_text_processor.split_text(sample_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
         assert isinstance(result, list)
         assert len(result) >= expected_min_chunks
@@ -34,16 +32,12 @@ class TestSplitText:
 
         # Check that chunks don't exceed the specified chunk_size by too much
         for chunk in result:
-            assert (
-                len(chunk) <= chunk_size * 1.5
-            )  # Allow some flexibility for word boundaries
+            assert len(chunk) <= chunk_size * 1.5  # Allow some flexibility for word boundaries
 
     def test_split_text_basic_functionality(self, mock_text_processor: TextProcessor):
         """Basic test to verify split_text works with simple input"""
         test_text = "This is a test. " * 50  # 50 repetitions should be enough to split
-        result = mock_text_processor.split_text(
-            test_text, chunk_size=100, chunk_overlap=20
-        )
+        result = mock_text_processor.split_text(test_text, chunk_size=100, chunk_overlap=20)
 
         assert isinstance(result, list)
         assert len(result) > 0
@@ -51,9 +45,7 @@ class TestSplitText:
         joined = " ".join(result)
         assert "This is a test." in joined
 
-    def test_split_text_default_parameters(
-        self, mock_text_processor: TextProcessor, sample_text: str
-    ):
+    def test_split_text_default_parameters(self, mock_text_processor: TextProcessor, sample_text: str):
         """Test split_text with default parameters"""
         result = mock_text_processor.split_text(sample_text)
 
@@ -61,21 +53,15 @@ class TestSplitText:
         assert len(result) > 0
         assert all(isinstance(chunk, str) for chunk in result)
 
-    def test_split_text_short_text(
-        self, mock_text_processor: TextProcessor, short_text: str
-    ):
+    def test_split_text_short_text(self, mock_text_processor: TextProcessor, short_text: str):
         """Test split_text with text shorter than chunk_size"""
-        result = mock_text_processor.split_text(
-            short_text, chunk_size=1000, chunk_overlap=200
-        )
+        result = mock_text_processor.split_text(short_text, chunk_size=1000, chunk_overlap=200)
 
         assert isinstance(result, list)
         assert len(result) == 1
         assert result[0] == short_text
 
-    def test_split_text_empty_text(
-        self, mock_text_processor: TextProcessor, empty_text: str
-    ):
+    def test_split_text_empty_text(self, mock_text_processor: TextProcessor, empty_text: str):
         """Test split_text with empty text"""
         result = mock_text_processor.split_text(empty_text)
 
@@ -99,9 +85,7 @@ class TestSplitText:
         chunk_overlap: int,
     ):
         """Test that chunks have proper overlap when specified"""
-        result = mock_text_processor.split_text(
-            sample_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap
-        )
+        result = mock_text_processor.split_text(sample_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
         if len(result) > 1:
             # Check that consecutive chunks have some overlap
@@ -109,13 +93,9 @@ class TestSplitText:
             assert len(result) >= 2
             assert all(len(chunk) > 0 for chunk in result)
 
-    def test_split_text_preserves_content(
-        self, mock_text_processor: TextProcessor, sample_text: str
-    ):
+    def test_split_text_preserves_content(self, mock_text_processor: TextProcessor, sample_text: str):
         """Test that split_text preserves the original content"""
-        result = mock_text_processor.split_text(
-            sample_text, chunk_size=100, chunk_overlap=20
-        )
+        result = mock_text_processor.split_text(sample_text, chunk_size=100, chunk_overlap=20)
 
         # Join all chunks and compare with original
         # (accounting for potential duplicated overlap)
@@ -143,9 +123,7 @@ class TestIntegration:
         mocker: MockerFixture,
     ):
         """Test the process_text function"""
-        similarity_search_spy = mocker.spy(
-            mock_text_processor.vector_store, "similarity_search"
-        )
+        similarity_search_spy = mocker.spy(mock_text_processor.vector_store, "similarity_search")
         split_text_spy = mocker.spy(mock_text_processor, "split_text")
         add_texts_spy = mocker.spy(mock_text_processor.vector_store, "add_texts")
         split_text_spy.return_value = ["test", "test"]
@@ -153,17 +131,13 @@ class TestIntegration:
         # similarity_search_spy.return_value = [
         #     {"page_content": "test", "metadata": {"source": "test"}}
         # ]
-        expected_search_results = [
-            {"page_content": "test", "metadata": {"source": "test"}}
-        ]
+        expected_search_results = [{"page_content": "test", "metadata": {"source": "test"}}]
         result = mock_text_processor.process_text(sample_text, "test")
         assert result == expected_search_results
 
         # Check that the text was split into chunks
 
-        split_text_spy.assert_called_once_with(
-            sample_text, chunk_size=1000, chunk_overlap=200
-        )
+        split_text_spy.assert_called_once_with(sample_text, chunk_size=1000, chunk_overlap=200)
 
         # Check that the chunks were added to the vector store
 

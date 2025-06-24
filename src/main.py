@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from src.api.routers.debug_router import router as debug_router
+from src.api.routers.job_search_router import router as job_search_router
 from src.api.routers.text_processor_router import router as text_router
 from src.logger import get_logger, setup_logging_from_env
 
@@ -43,7 +44,12 @@ app.add_middleware(
 
 # Include routers
 app.include_router(text_router, prefix=settings.API_PREFIX, tags=["text_processor"])
-app.include_router(debug_router)
+
+if settings.ENV == "development":
+    app.include_router(debug_router)
+
+
+app.include_router(job_search_router)
 
 
 @app.get("/")

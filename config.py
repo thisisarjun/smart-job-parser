@@ -14,11 +14,7 @@ project_root = get_project_root()
 print(f"project_root: {project_root}")
 
 
-dotenv_path = (
-    project_root / ".env.test"
-    if os.getenv("ENV") == "testing"
-    else project_root / ".env"
-)
+dotenv_path = project_root / ".env.test" if os.getenv("ENV") == "testing" else project_root / ".env"
 # Load .env file
 load_dotenv(dotenv_path)
 
@@ -27,6 +23,9 @@ class Settings:
     """Application settings loaded from environment variables"""
 
     def __init__(self):
+        # Environment Settings
+        self.ENV = os.getenv("ENV", "development")
+
         # API Settings
         self.API_PREFIX = os.getenv("API_PREFIX", "/api/v1")
         self.PROJECT_NAME = os.getenv("PROJECT_NAME", "Smart Job Parser")
@@ -51,12 +50,8 @@ class Settings:
         self.PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "test_namespace")
 
         # JSearch Settings
-        self.JSEARCH_BASE_URL = os.getenv(
-            "JSEARCH_BASE_URL", "https://jsearch.p.rapidapi.com"
-        )
-        self.JSEARCH_HEADER_HOST = os.getenv(
-            "JSEARCH_HEADER_HOST", "jsearch.p.rapidapi.com"
-        )
+        self.JSEARCH_BASE_URL = os.getenv("JSEARCH_BASE_URL", "https://jsearch.p.rapidapi.com")
+        self.JSEARCH_HEADER_HOST = os.getenv("JSEARCH_HEADER_HOST", "jsearch.p.rapidapi.com")
 
         # Debug settings
         self.DEBUG = os.getenv("DEBUG", "false").lower() == "true"

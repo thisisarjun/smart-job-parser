@@ -6,10 +6,7 @@ import pytest
 from src.job_searcher.models import JobDetails
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
-from tests.factories.search_vendors import (
-    JSearchJobFactory,
-    JSearchSearchResponseFactory,
-)
+from tests.factories.search_vendors import JSearchJobFactory, JSearchSearchResponseFactory
 
 
 class TestJSearchVendorInit:
@@ -42,10 +39,7 @@ class TestJSearchVendorConversion:
 
         assert isinstance(job_details, JobDetails)
         assert job_details.title == "Software Developer"
-        assert (
-            job_details.description
-            == "never been a more exciting time to join United Airlines"
-        )
+        assert job_details.description == "never been a more exciting time to join United Airlines"
         assert job_details.location == "Chicago, Illinois, US"
         assert job_details.company == "United Airlines"
         assert (
@@ -121,9 +115,7 @@ class TestJSearchVendorSearchJobs:
         ],
     )
     @patch("httpx.Client")
-    def test_search_jobs_errors(
-        self, mock_client_class, jsearch_vendor, exception_type, expected_message
-    ):
+    def test_search_jobs_errors(self, mock_client_class, jsearch_vendor, exception_type, expected_message):
         """Test search_jobs error handling"""
         # Setup mock to raise exception
         mock_client = MagicMock()
@@ -133,9 +125,7 @@ class TestJSearchVendorSearchJobs:
             mock_response = Mock()
             mock_response.status_code = 400
             mock_response.text = "Bad Request"
-            mock_client.get.side_effect = httpx.HTTPStatusError(
-                "Error", request=Mock(), response=mock_response
-            )
+            mock_client.get.side_effect = httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
         else:
             mock_client.get.side_effect = exception_type("Test error")
 
@@ -203,9 +193,7 @@ class TestJSearchVendorGetJobDetails:
         ],
     )
     @patch("httpx.Client")
-    def test_get_job_details_errors(
-        self, mock_client_class, jsearch_vendor, exception_type, expected_message
-    ):
+    def test_get_job_details_errors(self, mock_client_class, jsearch_vendor, exception_type, expected_message):
         """Test get_job_details error handling"""
         # Setup mock to raise exception
         mock_client = MagicMock()
@@ -215,9 +203,7 @@ class TestJSearchVendorGetJobDetails:
             mock_response = Mock()
             mock_response.status_code = 404
             mock_response.text = "Not Found"
-            mock_client.get.side_effect = httpx.HTTPStatusError(
-                "Error", request=Mock(), response=mock_response
-            )
+            mock_client.get.side_effect = httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
         else:
             mock_client.get.side_effect = exception_type("Test error")
 

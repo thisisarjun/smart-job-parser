@@ -17,9 +17,7 @@ class MemoryStore(VectorStore):
             metadata = job_detail.get_metadata()
             metadata["job_description"] = job_detail.job_description
             metadata["location_string"] = job_detail.location_string
-            self.vector_store.add_texts(
-                texts=[job_detail.get_combined_text_document()], metadatas=[metadata]
-            )
+            self.vector_store.add_texts(texts=[job_detail.get_combined_text_document()], metadatas=[metadata])
 
     def similarity_search(self, query: str) -> list[JobVectorStore]:
         documents = self.vector_store.similarity_search(query)

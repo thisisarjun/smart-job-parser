@@ -60,9 +60,7 @@ def mock_ollama_class():
 def mock_vector_store():
     """Mock vector store for testing process_text function"""
     mock_instance = Mock(spec=InMemoryVectorStore)
-    mock_instance.similarity_search.return_value = [
-        {"page_content": "test", "metadata": {"source": "test"}}
-    ]
+    mock_instance.similarity_search.return_value = [{"page_content": "test", "metadata": {"source": "test"}}]
     return mock_instance
 
 

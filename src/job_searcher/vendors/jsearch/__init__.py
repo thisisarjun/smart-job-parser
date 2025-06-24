@@ -1,11 +1,4 @@
-from .models import (
-    DatePosted,
-    EmploymentType,
-    Job,
-    JobRequirement,
-    SearchParams,
-    SearchResponse,
-)
+from .models import DatePosted, EmploymentType, Job, JobRequirement, SearchParams, SearchResponse
 from .vendor import JSearchVendor
 
 __all__ = [

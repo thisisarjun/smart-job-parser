@@ -31,20 +31,12 @@ class SearchParams(BaseModel):
 
     query: str = Field(..., description="Search query (job title and location)")
     page: int = Field(default=1, ge=1, description="Page number")
-    date_posted: DatePosted = Field(
-        default=DatePosted.ALL, description="Filter by posting date"
-    )
+    date_posted: DatePosted = Field(default=DatePosted.ALL, description="Filter by posting date")
     remote_jobs_only: bool = Field(default=False, description="Find remote jobs only")
-    employment_types: Optional[List[EmploymentType]] = Field(
-        default=None, description="Employment types filter"
-    )
-    job_requirements: Optional[List[JobRequirement]] = Field(
-        default=None, description="Job requirements filter"
-    )
+    employment_types: Optional[List[EmploymentType]] = Field(default=None, description="Employment types filter")
+    job_requirements: Optional[List[JobRequirement]] = Field(default=None, description="Job requirements filter")
     radius: Optional[int] = Field(default=None, ge=1, description="Search radius in km")
-    num_pages: int = Field(
-        default=1, ge=1, le=20, description="Number of pages to fetch"
-    )
+    num_pages: int = Field(default=1, ge=1, le=20, description="Number of pages to fetch")
     country: Optional[str] = Field(default=None, description="Country filter")
 
     def to_jsearch_params(self) -> Dict[str, Any]:
@@ -58,13 +50,9 @@ class SearchParams(BaseModel):
         if self.remote_jobs_only:
             params["remote_jobs_only"] = "true"
         if self.employment_types:
-            params["employment_types"] = ",".join(
-                [et.value for et in self.employment_types]
-            )
+            params["employment_types"] = ",".join([et.value for et in self.employment_types])
         if self.job_requirements:
-            params["job_requirements"] = ",".join(
-                [jr.value for jr in self.job_requirements]
-            )
+            params["job_requirements"] = ",".join([jr.value for jr in self.job_requirements])
         if self.radius:
             params["radius"] = str(self.radius)
         if self.num_pages:

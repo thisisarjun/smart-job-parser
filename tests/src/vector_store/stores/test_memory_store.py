@@ -18,9 +18,7 @@ class TestMemoryStore:
         assert hasattr(store, "vector_store")
 
     @patch("src.vector_store.stores.memory_store.InMemoryVectorStore")
-    def test_init_creates_langchain_vector_store(
-        self, mock_vector_store_class, mock_embedding
-    ):
+    def test_init_creates_langchain_vector_store(self, mock_vector_store_class, mock_embedding):
         """Test that initialization creates LangChain InMemoryVectorStore"""
         mock_instance = Mock()
         mock_vector_store_class.return_value = mock_instance
@@ -30,13 +28,9 @@ class TestMemoryStore:
         mock_vector_store_class.assert_called_once_with(embedding=mock_embedding)
         assert store.vector_store == mock_instance
 
-    def test_add_job_details_calls_add_texts(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_calls_add_texts(self, mock_embedding, sample_job_vector_store):
         """Test that add_job_details calls add_texts with correct parameters"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
 
@@ -58,19 +52,13 @@ class TestMemoryStore:
             # Verify metadatas parameter
             assert len(metadatas) == 1
             expected_metadata = sample_job_vector_store.get_metadata()
-            expected_metadata["job_description"] = (
-                sample_job_vector_store.job_description
-            )
-            expected_metadata["location_string"] = (
-                sample_job_vector_store.location_string
-            )
+            expected_metadata["job_description"] = sample_job_vector_store.job_description
+            expected_metadata["location_string"] = sample_job_vector_store.location_string
             assert metadatas[0] == expected_metadata
 
     def test_add_job_details_with_minimal_job(self, mock_embedding):
         """Test add_job_details with minimal job data"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
 
@@ -97,13 +85,9 @@ class TestMemoryStore:
             assert metadatas[0]["job_id"] == "minimal_job"
             assert metadatas[0]["job_description"] == "Test description"
 
-    def test_add_job_details_metadata_includes_extra_fields(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_metadata_includes_extra_fields(self, mock_embedding, sample_job_vector_store):
         """Test that metadata includes job_description and location_string"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
 
@@ -116,12 +100,8 @@ class TestMemoryStore:
             # Check that extra fields are added to metadata
             assert "job_description" in metadata
             assert "location_string" in metadata
-            assert (
-                metadata["job_description"] == sample_job_vector_store.job_description
-            )
-            assert (
-                metadata["location_string"] == sample_job_vector_store.location_string
-            )
+            assert metadata["job_description"] == sample_job_vector_store.job_description
+            assert metadata["location_string"] == sample_job_vector_store.location_string
 
     @pytest.mark.parametrize(
         "job_data",
@@ -151,9 +131,7 @@ class TestMemoryStore:
     )
     def test_add_job_details_with_various_job_data(self, mock_embedding, job_data):
         """Test add_job_details with various job configurations"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
 
@@ -172,9 +150,7 @@ class TestMemoryStore:
 
     def test_similarity_search_calls_vector_store(self, mock_embedding):
         """Test that similarity_search calls the underlying vector store"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.return_value = []
@@ -189,9 +165,7 @@ class TestMemoryStore:
 
     def test_similarity_search_with_different_queries(self, mock_embedding):
         """Test similarity_search with different query strings"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.return_value = []
@@ -228,9 +202,7 @@ class TestMemoryStore:
             ),
         ]
 
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.return_value = mock_docs
@@ -256,9 +228,7 @@ class TestMemoryStore:
 
     def test_similarity_search_with_empty_results(self, mock_embedding):
         """Test similarity_search when no results are found"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.return_value = []
@@ -271,9 +241,7 @@ class TestMemoryStore:
 
     def test_similarity_search_preserves_exceptions(self, mock_embedding):
         """Test that similarity_search preserves exceptions from vector store"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.side_effect = ValueError("Search error")
@@ -283,13 +251,9 @@ class TestMemoryStore:
             with pytest.raises(ValueError, match="Search error"):
                 store.similarity_search("test query")
 
-    def test_multiple_add_job_details_calls(
-        self, mock_embedding, sample_job_vector_stores
-    ):
+    def test_multiple_add_job_details_calls(self, mock_embedding, sample_job_vector_stores):
         """Test multiple calls to add_job_details"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
 
@@ -302,13 +266,9 @@ class TestMemoryStore:
             # Verify add_texts was called for each job
             assert mock_instance.add_texts.call_count == len(sample_job_vector_stores)
 
-    def test_add_job_details_then_search_integration(
-        self, mock_embedding, sample_job_vector_store
-    ):
+    def test_add_job_details_then_search_integration(self, mock_embedding, sample_job_vector_store):
         """Test integration of adding job details then searching"""
-        with patch(
-            "src.vector_store.stores.memory_store.InMemoryVectorStore"
-        ) as mock_vector_store_class:
+        with patch("src.vector_store.stores.memory_store.InMemoryVectorStore") as mock_vector_store_class:
             mock_instance = Mock()
             mock_vector_store_class.return_value = mock_instance
             mock_instance.similarity_search.return_value = [

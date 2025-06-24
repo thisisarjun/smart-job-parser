@@ -24,9 +24,7 @@ class JSearchVendor(JobSearchVendor):
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = settings.JSEARCH_API_KEY
         if not self.api_key:
-            raise ValueError(
-                "RapidAPI key is required. Set JSEARCH_API_KEY environment variable."
-            )
+            raise ValueError("RapidAPI key is required. Set JSEARCH_API_KEY environment variable.")
 
         # Using the RapidAPI endpoint from the curl example
         self.base_url = settings.JSEARCH_BASE_URL
@@ -50,9 +48,7 @@ class JSearchVendor(JobSearchVendor):
             state=jsearch_job.job_state,
         )
 
-    def search_jobs(
-        self, query: str, filters: Optional[Dict[str, Any]] = None
-    ) -> List[JobDetails]:
+    def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
         """Search for jobs using JSearch API via RapidAPI"""
         try:
             search_params = SearchParams(query=query)
@@ -80,14 +76,10 @@ class JSearchVendor(JobSearchVendor):
                 search_response = SearchResponse(**data)
 
                 # Return converted JobDetails
-                return [
-                    self._convert_to_job_details(job) for job in search_response.data
-                ]
+                return [self._convert_to_job_details(job) for job in search_response.data]
 
         except httpx.HTTPStatusError as e:
-            raise Exception(
-                f"JSearch API error: {e.response.status_code} - {e.response.text}"
-            )
+            raise Exception(f"JSearch API error: {e.response.status_code} - {e.response.text}")
         except httpx.RequestError as e:
             raise Exception(f"JSearch API request failed: {str(e)}")
         except Exception as e:
@@ -119,9 +111,7 @@ class JSearchVendor(JobSearchVendor):
                     raise Exception("Job not found")
 
         except httpx.HTTPStatusError as e:
-            raise Exception(
-                f"JSearch API error: {e.response.status_code} - {e.response.text}"
-            )
+            raise Exception(f"JSearch API error: {e.response.status_code} - {e.response.text}")
         except httpx.RequestError as e:
             raise Exception(f"JSearch API request failed: {str(e)}")
         except Exception as e:
