@@ -1,3 +1,4 @@
+import hashlib
 from typing import Any, Dict, List, Optional
 
 from src.job_searcher.interface import JobSearchVendor
@@ -32,3 +33,17 @@ class JobSearcher:
         except Exception as e:
             logger.error(f"Error searching jobs for query '{query}': {str(e)}")
             raise
+
+    def deduplicate_jobs(self, jobs: Optional[List[JobDetails]] = None) -> List[JobDetails]:
+        if jobs is None:
+            return []
+        job_hashes = set()
+        deduplicated_jobs = []
+        for job in jobs:
+            job_hash = hashlib.sha256(job.job_url.encode()).hexdigest()
+            if job_hash in job_hashes:
+                continue
+            job_hashes.add(job_hash)
+            deduplicated_jobs.append(job)
+        logger.info(f"Deduplicated {len(jobs)} jobs to {len(deduplicated_jobs)} jobs")
+        return deduplicated_jobs
