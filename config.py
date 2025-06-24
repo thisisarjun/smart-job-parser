@@ -11,18 +11,18 @@ def get_project_root() -> Path:
 
 
 project_root = get_project_root()
-print(f"project_root: {project_root}")
-
 
 dotenv_path = project_root / ".env.test" if os.getenv("ENV") == "testing" else project_root / ".env"
 # Load .env file
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 
 class Settings:
     """Application settings loaded from environment variables"""
 
     def __init__(self):
+
+        self.dotenv_path = dotenv_path
         # Environment Settings
         self.ENV = os.getenv("ENV", "development")
 
