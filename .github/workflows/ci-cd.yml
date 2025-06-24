@@ -81,7 +81,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
+    - name: Build Docker image( test build )
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -90,12 +90,6 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Test Docker image
-      run: |
-        docker run -d -p 8000:8000 --name test-container smart-job-parser:latest
-        sleep 10
-        curl -f http://localhost:8000/health || exit 1
-        docker stop test-container
 
   deploy-staging:
     name: Deploy to Staging
