@@ -13,7 +13,7 @@ class JobSearcher:
         self.vendor = vendor
         logger.info(f"JobSearcher initialized with vendor: {vendor.get_vendor_name()}")
 
-    def search_jobs(self, query: Optional[str], filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+    async def search_jobs(self, query: Optional[str], filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
         logger.debug(f"Searching jobs with query: '{query}', filters: {filters}")
 
         if query is None:
@@ -21,7 +21,7 @@ class JobSearcher:
             return []
 
         try:
-            results = self.vendor.search_jobs(query, filters)
+            results = await self.vendor.search_jobs(query, filters)
 
             # Handle case where vendor returns None
             if results is None:

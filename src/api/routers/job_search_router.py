@@ -18,7 +18,7 @@ async def search_relevant_jobs(
     country: str,
     job_search_service: JobSearchService = Depends(get_job_search_service),  # noqa: B008
 ) -> Any:
-    results = job_search_service.search_relevant_jobs(
+    results = await job_search_service.search_relevant_jobs(
         query=query,
         filters={"country": country},
     )

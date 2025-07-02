@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+from unittest.mock import Mock
 
 import pytest
 
@@ -17,16 +18,18 @@ class TestJobSearcher:
 
         assert service.vendor == mock_vendor
 
-    def test_search_jobs_with_vendor(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_vendor(self, mock_vendor, sample_job_details):
         """Test search_jobs with a vendor"""
         service = JobSearcher(vendor=mock_vendor)
         query = "python developer"
 
-        result = service.search_jobs(query)
+        result = await service.search_jobs(query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(query, None)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "query",
         [
@@ -37,40 +40,43 @@ class TestJobSearcher:
             "java spring boot",
         ],
     )
-    def test_search_jobs_with_different_queries(self, mock_vendor, sample_job_details, query):
+    async def test_search_jobs_with_different_queries(self, mock_vendor, sample_job_details, query):
         """Test search_jobs with various query strings"""
         service = JobSearcher(vendor=mock_vendor)
 
-        result = service.search_jobs(query)
+        result = await service.search_jobs(query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(query, None)
 
-    def test_search_jobs_returns_empty_list(self, mock_vendor):
+    @pytest.mark.asyncio
+    async def test_search_jobs_returns_empty_list(self, mock_vendor):
         """Test search_jobs when vendor returns empty list"""
         mock_vendor.search_jobs.return_value = []
         service = JobSearcher(vendor=mock_vendor)
 
-        result = service.search_jobs("nonexistent job")
+        result = await service.search_jobs("nonexistent job")
 
         assert result == []
         assert isinstance(result, list)
         mock_vendor.search_jobs.assert_called_once_with("nonexistent job", None)
 
-    def test_search_jobs_preserves_vendor_exceptions(self, mock_vendor):
+    @pytest.mark.asyncio
+    async def test_search_jobs_preserves_vendor_exceptions(self, mock_vendor):
         """Test that search_jobs preserves exceptions from vendor"""
         mock_vendor.search_jobs.side_effect = ValueError("API error")
         service = JobSearcher(vendor=mock_vendor)
 
         with pytest.raises(ValueError, match="API error"):
-            service.search_jobs("test query")
+            await service.search_jobs("test query")
 
-    def test_search_jobs_delegates_to_vendor(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_delegates_to_vendor(self, mock_vendor, sample_job_details):
         """Test that search_jobs properly delegates to the vendor"""
         service = JobSearcher(vendor=mock_vendor)
         query = "react developer"
 
-        result = service.search_jobs(query)
+        result = await service.search_jobs(query)
 
         # Verify the call was made with correct parameters
         mock_vendor.search_jobs.assert_called_once_with(query, None)
@@ -78,33 +84,36 @@ class TestJobSearcher:
         assert result == sample_job_details
         assert result is mock_vendor.search_jobs.return_value
 
-    def test_search_jobs_with_complex_query(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_complex_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with complex query string"""
         service = JobSearcher(vendor=mock_vendor)
         complex_query = "senior python developer remote full-time"
 
-        result = service.search_jobs(complex_query)
+        result = await service.search_jobs(complex_query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(complex_query, None)
 
-    def test_search_jobs_with_empty_query(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_empty_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with empty query string"""
         service = JobSearcher(vendor=mock_vendor)
 
-        result = service.search_jobs("")
+        result = await service.search_jobs("")
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with("", None)
 
-    def test_search_jobs_multiple_calls(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_multiple_calls(self, mock_vendor, sample_job_details):
         """Test multiple calls to search_jobs"""
         service = JobSearcher(vendor=mock_vendor)
 
         # First call
-        result1 = service.search_jobs("python")
+        result1 = await service.search_jobs("python")
         # Second call
-        result2 = service.search_jobs("javascript")
+        result2 = await service.search_jobs("javascript")
 
         assert result1 == sample_job_details
         assert result2 == sample_job_details
@@ -114,42 +123,46 @@ class TestJobSearcher:
         mock_vendor.search_jobs.assert_any_call("python", None)
         mock_vendor.search_jobs.assert_any_call("javascript", None)
 
-    def test_search_jobs_with_none_query(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_none_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with None query - should return empty list"""
         service = JobSearcher(vendor=mock_vendor)
 
         # When query is None, service should return empty list without calling vendor
-        result = service.search_jobs(None)
+        result = await service.search_jobs(None)
 
         assert result == []
         mock_vendor.search_jobs.assert_not_called()
 
-    def test_search_jobs_with_special_characters(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_special_characters(self, mock_vendor, sample_job_details):
         """Test search_jobs with special characters in query"""
         service = JobSearcher(vendor=mock_vendor)
         special_query = "C++ developer @$%^&*(){}[]|\\:;\"'<>?,./"
 
-        result = service.search_jobs(special_query)
+        result = await service.search_jobs(special_query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(special_query, None)
 
-    def test_search_jobs_with_unicode_query(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_unicode_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with Unicode characters in query"""
         service = JobSearcher(vendor=mock_vendor)
         unicode_query = "développeur python 工程师研发工程师"
 
-        result = service.search_jobs(unicode_query)
+        result = await service.search_jobs(unicode_query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(unicode_query, None)
 
-    def test_search_jobs_with_very_long_query(self, mock_vendor, sample_job_details):
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_very_long_query(self, mock_vendor, sample_job_details):
         """Test search_jobs with very long query string"""
         service = JobSearcher(vendor=mock_vendor)
         long_query = "python developer " * 100  # Very long query
 
-        result = service.search_jobs(long_query)
+        result = await service.search_jobs(long_query)
 
         assert result == sample_job_details
         mock_vendor.search_jobs.assert_called_once_with(long_query, None)
@@ -164,17 +177,19 @@ class TestJobSearcher:
         # Should be the same object reference
         assert id(service.vendor) == id(mock_vendor)
 
-    def test_search_jobs_vendor_returns_none(self, mock_vendor):
+    @pytest.mark.asyncio
+    async def test_search_jobs_vendor_returns_none(self, mock_vendor):
         """Test search_jobs when vendor returns None (edge case)"""
         mock_vendor.search_jobs.return_value = None
         service = JobSearcher(vendor=mock_vendor)
 
-        result = service.search_jobs("test query")
+        result = await service.search_jobs("test query")
 
         mock_vendor.search_jobs.assert_called_once_with("test query", None)
         assert result == []
 
-    def test_search_jobs_vendor_side_effect_exception_types(self, mock_vendor):
+    @pytest.mark.asyncio
+    async def test_search_jobs_vendor_side_effect_exception_types(self, mock_vendor):
         """Test different exception types from vendor"""
         service = JobSearcher(vendor=mock_vendor)
 
@@ -191,7 +206,7 @@ class TestJobSearcher:
             mock_vendor.search_jobs.side_effect = exception
 
             with pytest.raises(type(exception)):
-                service.search_jobs("test query")
+                await service.search_jobs("test query")
 
         # Reset after all iterations
         mock_vendor.search_jobs.side_effect = None
@@ -199,25 +214,20 @@ class TestJobSearcher:
 
 
 class TestJobSearcherIntegration:
-    """Integration tests for JobSearcher with realistic scenarios"""
+    """Integration tests for JobSearcher with real vendor implementations"""
 
-    def test_search_jobs_with_real_vendor_interface(self):
-        """Test with a more realistic vendor implementation"""
+    @pytest.mark.asyncio
+    async def test_search_jobs_with_real_vendor_interface(self):
+        """Test search_jobs with a real vendor implementation"""
 
         class TestVendor(JobSearchVendor):
-            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
-                return [
-                    JobDetailsFactory.build(
-                        title="Developer for python",
-                        company="Test Company",
-                    )
-                ]
+            async def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+                # Return sample job details for testing
+                return JobDetailsFactory.batch(3)
 
-            def get_job_details(self, job_id: str) -> JobDetails:
-                return JobDetailsFactory.build(
-                    title="Developer for python",
-                    company="Test Company",
-                )
+            async def get_job_details(self, job_id: str) -> JobDetails:
+                # Return a single job detail for testing
+                return JobDetailsFactory.build()
 
             def get_vendor_name(self) -> str:
                 return "test_vendor"
@@ -225,74 +235,146 @@ class TestJobSearcherIntegration:
         vendor = TestVendor()
         service = JobSearcher(vendor=vendor)
 
-        result = service.search_jobs("python", filters={"location": "Remote"})
+        result = await service.search_jobs("python developer")
 
-        assert len(result) == 1
-        assert result[0].title == "Developer for python"
-        assert result[0].company == "Test Company"
+        assert isinstance(result, list)
+        assert len(result) == 3
+        assert all(isinstance(job, JobDetails) for job in result)
 
-    def test_service_with_different_vendors(self, sample_job_details):
-        """Test service behavior with different vendor implementations"""
+    @pytest.mark.asyncio
+    async def test_service_with_different_vendors(self, sample_job_details):
+        """Test JobSearcher with different vendor implementations"""
 
         class VendorA(JobSearchVendor):
-            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
-                return [
-                    JobDetailsFactory.build(
-                        title="VendorA Detail",
-                        description="Detail from Vendor A",
-                        location="Location A",
-                        company="Company A",
-                        job_url="https://vendorA.com/job",
-                    )
-                ]
+            async def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+                # VendorA returns first 3 sample jobs
+                return sample_job_details[:3]
 
-            def get_job_details(self, job_id: str) -> JobDetails:
-                return JobDetailsFactory.build(
-                    title="VendorA Detail",
-                    description="Detail from Vendor A",
-                    location="Location A",
-                    company="Company A",
-                    job_url="https://vendorA.com/job",
-                )
+            async def get_job_details(self, job_id: str) -> JobDetails:
+                return sample_job_details[0]
 
             def get_vendor_name(self) -> str:
                 return "vendor_a"
 
         class VendorB(JobSearchVendor):
-            def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
-                return [
-                    JobDetailsFactory.build(
-                        title="VendorB Detail",
-                        description="Detail from Vendor B",
-                        location="Location B",
-                        company="Company B",
-                        job_url="https://vendorB.com/job",
-                    )
-                ]
+            async def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+                # VendorB returns last 2 sample jobs
+                return sample_job_details[-2:]
 
-            def get_job_details(self, job_id: str) -> JobDetails:
-                return JobDetailsFactory.build(
-                    title="VendorB Detail",
-                    description="Detail from Vendor B",
-                    location="Location B",
-                    company="Company B",
-                    job_url="https://vendorB.com/job",
-                )
+            async def get_job_details(self, job_id: str) -> JobDetails:
+                return sample_job_details[-1]
 
             def get_vendor_name(self) -> str:
                 return "vendor_b"
 
         # Test with VendorA
         service_a = JobSearcher(vendor=VendorA())
-        result_a = service_a.search_jobs("test", filters={"location": "Remote"})
-        assert result_a[0].title == "VendorA Detail"
-        assert result_a[0].company == "Company A"
+        result_a = await service_a.search_jobs("test query")
+        assert len(result_a) == 3
+        assert result_a[0] == sample_job_details[0]
 
         # Test with VendorB
         service_b = JobSearcher(vendor=VendorB())
-        result_b = service_b.search_jobs("test", filters={"location": "Remote"})
-        assert result_b[0].title == "VendorB Detail"
-        assert result_b[0].company == "Company B"
+        result_b = await service_b.search_jobs("test query")
+        assert len(result_b) == 2
+        assert result_b[0] == sample_job_details[-2]
 
-        # Results should be different
-        assert result_a[0].title != result_b[0].title
+
+class TestJobSearcherDeduplication:
+    """Test job deduplication functionality"""
+
+    def test_deduplicate_jobs_empty_list(self):
+        """Test deduplication with empty list"""
+        # Create a minimal mock vendor for initialization only
+        vendor = Mock(spec=JobSearchVendor)
+        vendor.get_vendor_name.return_value = "test_vendor"
+        service = JobSearcher(vendor=vendor)
+
+        result = service.deduplicate_jobs([])
+
+        assert result == []
+
+    def test_deduplicate_jobs_none_input(self):
+        """Test deduplication with None input"""
+        # Create a minimal mock vendor for initialization only
+        vendor = Mock(spec=JobSearchVendor)
+        vendor.get_vendor_name.return_value = "test_vendor"
+        service = JobSearcher(vendor=vendor)
+
+        result = service.deduplicate_jobs(None)
+
+        assert result == []
+
+    def test_deduplicate_jobs_no_duplicates(self):
+        """Test deduplication with no duplicate jobs"""
+        # Create a minimal mock vendor for initialization only
+        vendor = Mock(spec=JobSearchVendor)
+        vendor.get_vendor_name.return_value = "test_vendor"
+        service = JobSearcher(vendor=vendor)
+
+        # Create jobs with different URLs
+        jobs = [
+            JobDetails(
+                job_id="1",
+                title="Job 1",
+                description="Description 1",
+                location="Location 1",
+                company="Company 1",
+                job_url="https://example.com/job1",
+            ),
+            JobDetails(
+                job_id="2",
+                title="Job 2",
+                description="Description 2",
+                location="Location 2",
+                company="Company 2",
+                job_url="https://example.com/job2",
+            ),
+        ]
+
+        result = service.deduplicate_jobs(jobs)
+
+        assert len(result) == 2
+        assert result == jobs
+
+    def test_deduplicate_jobs_with_duplicates(self):
+        """Test deduplication with duplicate jobs (same URLs)"""
+        # Create a minimal mock vendor for initialization only
+        vendor = Mock(spec=JobSearchVendor)
+        vendor.get_vendor_name.return_value = "test_vendor"
+        service = JobSearcher(vendor=vendor)
+
+        # Create jobs with duplicate URLs
+        jobs = [
+            JobDetails(
+                job_id="1",
+                title="Job 1",
+                description="Description 1",
+                location="Location 1",
+                company="Company 1",
+                job_url="https://example.com/job1",
+            ),
+            JobDetails(
+                job_id="2",
+                title="Job 2",
+                description="Description 2",
+                location="Location 2",
+                company="Company 2",
+                job_url="https://example.com/job2",
+            ),
+            JobDetails(
+                job_id="3",
+                title="Job 1 Duplicate",
+                description="Different description",
+                location="Different location",
+                company="Different company",
+                job_url="https://example.com/job1",  # Same URL as first job
+            ),
+        ]
+
+        result = service.deduplicate_jobs(jobs)
+
+        assert len(result) == 2  # Should remove the duplicate
+        assert result[0].job_id == "1"
+        assert result[1].job_id == "2"
+        # The third job should be filtered out as it has the same URL as the first

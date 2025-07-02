@@ -27,8 +27,8 @@ class JobSearchService:
                 query += f" {key}: {value}"
         return query
 
-    def search_relevant_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> list[JobDetails]:
-        jobs = self.job_searcher.search_jobs(query, filters)
+    async def search_relevant_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> list[JobDetails]:
+        jobs = await self.job_searcher.search_jobs(query, filters)
         deduplicated_jobs = self.job_searcher.deduplicate_jobs(jobs)
         # transform jobs to job vector store
         if not deduplicated_jobs:

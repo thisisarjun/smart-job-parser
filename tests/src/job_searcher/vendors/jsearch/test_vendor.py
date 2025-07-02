@@ -1,10 +1,9 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import httpx
 import pytest
 
 from src.job_searcher.models import JobDetails
-from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
 from tests.factories.search_vendors import JSearchJobFactory, JSearchSearchResponseFactory
 
@@ -19,59 +18,53 @@ class TestJSearchVendorInit:
         assert vendor.base_url == "https://jsearch.p.rapidapi.com"
         assert vendor.headers["x-rapidapi-key"] == "test_api_key"
         assert vendor.headers["x-rapidapi-host"] == "jsearch.p.rapidapi.com"
+        assert vendor.http_client is not None
 
 
 class TestJSearchVendorConversion:
     """Test job conversion methods"""
 
     def test_convert_to_job_details(self, jsearch_vendor):
-        sample_jsearch_job = JSearchJobFactory.build(
-            job_title="Software Developer",
-            job_description="never been a more exciting time to join United Airlines",
-            job_city="Chicago",
-            job_state="Illinois",
-            job_country="US",
-            job_apply_link="https://careers.united.com/us/en/job/WHQ00024224/Software-Developer?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",  # noqa: E501
-            employer_name="United Airlines",
-        )
         """Test conversion from JSearch job to JobDetails"""
-        job_details = jsearch_vendor._convert_to_job_details(sample_jsearch_job)
+        # Create sample JSearch job
+        jsearch_job = JSearchJobFactory.build(
+            job_id="test_123",
+            job_title="Software Engineer",
+            job_description="Build amazing software",
+            job_apply_link="https://example.com/apply",
+            employer_name="Tech Corp",
+            job_city="San Francisco",
+            job_state="CA",
+            job_country="US",
+        )
 
+        # Convert to JobDetails
+        job_details = jsearch_vendor._convert_to_job_details(jsearch_job)
+
+        # Verify conversion
         assert isinstance(job_details, JobDetails)
-        assert job_details.title == "Software Developer"
-        assert job_details.description == "never been a more exciting time to join United Airlines"
-        assert job_details.location == "Chicago, Illinois, US"
-        assert job_details.company == "United Airlines"
-        assert (
-            job_details.job_url
-            == "https://careers.united.com/us/en/job/WHQ00024224/Software-Developer?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic"  # noqa: E501
-        )
-        expected_url = (
-            "https://careers.united.com/us/en/job/WHQ00024224/"
-            "Software-Developer?utm_campaign=google_jobs_apply"
-            "&utm_source=google_jobs_apply&utm_medium=organic"
-        )
-        assert job_details.job_url == expected_url
+        assert job_details.job_id == "test_123"
+        assert job_details.title == "Software Engineer"
+        assert job_details.description == "Build amazing software"
+        assert job_details.job_url == "https://example.com/apply"
+        assert job_details.company == "Tech Corp"
+        assert job_details.city == "San Francisco"
+        assert job_details.state == "CA"
+        assert job_details.country == "US"
 
     def test_convert_to_job_details_no_employer(self, jsearch_vendor):
-        """Test conversion with missing employer name"""
-        job = JSearchJob(
-            job_id="test_123",
-            job_title="Developer",
-            job_description="Code stuff",
-            job_apply_link="https://example.com/apply",
-            employer_name=None,
-        )
-
-        job_details = jsearch_vendor._convert_to_job_details(job)
+        """Test conversion when employer name is missing"""
+        jsearch_job = JSearchJobFactory.build(employer_name=None)
+        job_details = jsearch_vendor._convert_to_job_details(jsearch_job)
         assert job_details.company == "Unknown Company"
 
 
 class TestJSearchVendorSearchJobs:
     """Test search_jobs method"""
 
-    @patch("httpx.Client")
-    def test_search_jobs_success(self, mock_client_class, jsearch_vendor):
+    @pytest.mark.asyncio
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_search_jobs_success(self, mock_http_client_class, jsearch_vendor):
         sample_search_response = JSearchSearchResponseFactory.build(
             data=[
                 JSearchJobFactory.build(
@@ -82,16 +75,16 @@ class TestJSearchVendorSearchJobs:
         )
         """Test successful job search"""
         # Setup mock
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = sample_search_response.dict()
-        mock_client.get.return_value = mock_response
+        mock_http_client.get = AsyncMock(return_value=mock_response)
 
         # Execute
-        result = jsearch_vendor.search_jobs("software engineer", {"country": "us"})
+        result = await jsearch_vendor.search_jobs("software engineer", {"country": "us"})
 
         # Verify
         assert len(result) == 1
@@ -99,13 +92,14 @@ class TestJSearchVendorSearchJobs:
         assert result[0].title == "Software Developer"
 
         # Verify API call
-        mock_client.get.assert_called_once()
-        call_args = mock_client.get.call_args
-        assert "search" in call_args[0][0]
+        mock_http_client.get.assert_called_once()
+        call_args = mock_http_client.get.call_args
+        assert call_args[0][0] == "/search"
         assert call_args[1]["params"]["query"] == "software engineer"
         assert call_args[1]["params"]["country"] == "us"
         assert call_args[1]["params"]["date_posted"] == "all"
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "exception_type,expected_message",
         [
@@ -114,24 +108,27 @@ class TestJSearchVendorSearchJobs:
             (Exception, "JSearch API unexpected error"),
         ],
     )
-    @patch("httpx.Client")
-    def test_search_jobs_errors(self, mock_client_class, jsearch_vendor, exception_type, expected_message):
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_search_jobs_errors(self, mock_http_client_class, jsearch_vendor, exception_type, expected_message):
         """Test search_jobs error handling"""
         # Setup mock to raise exception
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         if exception_type == httpx.HTTPStatusError:
             mock_response = Mock()
             mock_response.status_code = 400
             mock_response.text = "Bad Request"
-            mock_client.get.side_effect = httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
+            mock_http_client.get = AsyncMock(
+                side_effect=httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
+            )
         else:
-            mock_client.get.side_effect = exception_type("Test error")
+            mock_http_client.get = AsyncMock(side_effect=exception_type("Test error"))
 
         # Execute and verify
         with pytest.raises(Exception) as exc_info:
-            jsearch_vendor.search_jobs("test query")
+            await jsearch_vendor.search_jobs("test query")
 
         assert expected_message in str(exc_info.value)
 
@@ -139,51 +136,54 @@ class TestJSearchVendorSearchJobs:
 class TestJSearchVendorGetJobDetails:
     """Test get_job_details method"""
 
-    @patch("httpx.Client")
-    def test_get_job_details_success(self, mock_client_class, jsearch_vendor):
+    @pytest.mark.asyncio
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_get_job_details_success(self, mock_http_client_class, jsearch_vendor):
         sample_jsearch_job = JSearchJobFactory.build(
             job_title="Software Developer",
             job_description="never been a more exciting time to join United Airlines",
         )
         """Test successful job details retrieval"""
         # Setup mock
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {"data": [sample_jsearch_job.dict()]}
-        mock_client.get.return_value = mock_response
+        mock_http_client.get = AsyncMock(return_value=mock_response)
 
         # Execute
-        result = jsearch_vendor.get_job_details("test_job_123")
+        result = await jsearch_vendor.get_job_details("test_job_123")
 
         # Verify
         assert isinstance(result, JobDetails)
         assert result.title == "Software Developer"
 
         # Verify API call
-        mock_client.get.assert_called_once()
-        call_args = mock_client.get.call_args
-        assert "job-details" in call_args[0][0]
+        mock_http_client.get.assert_called_once()
+        call_args = mock_http_client.get.call_args
+        assert call_args[0][0] == "/job-details"
         assert call_args[1]["params"]["job_id"] == "test_job_123"
 
-    @patch("httpx.Client")
-    def test_get_job_details_not_found(self, mock_client_class, jsearch_vendor):
+    @pytest.mark.asyncio
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_get_job_details_not_found(self, mock_http_client_class, jsearch_vendor):
         """Test job details when job not found"""
         # Setup mock
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {"data": []}
-        mock_client.get.return_value = mock_response
+        mock_http_client.get = AsyncMock(return_value=mock_response)
 
         # Execute and verify
         with pytest.raises(Exception, match="Job not found"):
-            jsearch_vendor.get_job_details("nonexistent_job")
+            await jsearch_vendor.get_job_details("nonexistent_job")
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "exception_type,expected_message",
         [
@@ -192,24 +192,29 @@ class TestJSearchVendorGetJobDetails:
             (Exception, "JSearch API unexpected error"),
         ],
     )
-    @patch("httpx.Client")
-    def test_get_job_details_errors(self, mock_client_class, jsearch_vendor, exception_type, expected_message):
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_get_job_details_errors(
+        self, mock_http_client_class, jsearch_vendor, exception_type, expected_message
+    ):
         """Test get_job_details error handling"""
         # Setup mock to raise exception
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         if exception_type == httpx.HTTPStatusError:
             mock_response = Mock()
             mock_response.status_code = 404
             mock_response.text = "Not Found"
-            mock_client.get.side_effect = httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
+            mock_http_client.get = AsyncMock(
+                side_effect=httpx.HTTPStatusError("Error", request=Mock(), response=mock_response)
+            )
         else:
-            mock_client.get.side_effect = exception_type("Test error")
+            mock_http_client.get = AsyncMock(side_effect=exception_type("Test error"))
 
         # Execute and verify
         with pytest.raises(Exception) as exc_info:
-            jsearch_vendor.get_job_details("test_job_id")
+            await jsearch_vendor.get_job_details("test_job_id")
 
         assert expected_message in str(exc_info.value)
 
@@ -225,12 +230,14 @@ class TestJSearchVendorMisc:
 class TestJSearchVendorIntegration:
     """Integration tests for JSearchVendor"""
 
-    @patch("httpx.Client")
-    def test_full_search_workflow(self, mock_client_class, jsearch_vendor):
+    @pytest.mark.asyncio
+    @patch("src.job_searcher.vendors.jsearch.vendor.HttpBaseClient")
+    async def test_full_search_workflow(self, mock_http_client_class, jsearch_vendor):
         """Test complete search workflow"""
         # Setup mock for search
-        mock_client = MagicMock()
-        mock_client_class.return_value.__enter__.return_value = mock_client
+        mock_http_client = MagicMock()
+        mock_http_client_class.return_value = mock_http_client
+        jsearch_vendor.http_client = mock_http_client
 
         search_response_data = {
             "status": "OK",
@@ -261,12 +268,11 @@ class TestJSearchVendorIntegration:
         }
 
         mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = search_response_data
-        mock_client.get.return_value = mock_response
+        mock_http_client.get = AsyncMock(return_value=mock_response)
 
         # Execute search
-        results = jsearch_vendor.search_jobs("python developer")
+        results = await jsearch_vendor.search_jobs("python developer")
 
         # Verify results
         assert len(results) == 2

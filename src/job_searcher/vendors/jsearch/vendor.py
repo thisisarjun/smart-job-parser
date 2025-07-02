@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from config import settings
+from src.common.http_base_client import HttpBaseClient
 from src.job_searcher.interface import JobSearchVendor
 from src.job_searcher.models import JobDetails
 from src.job_searcher.vendors.jsearch.models import Job as JSearchJob
@@ -34,6 +35,9 @@ class JSearchVendor(JobSearchVendor):
             "x-rapidapi-key": self.api_key,
         }
 
+        # Initialize HTTP client
+        self.http_client = HttpBaseClient(base_url=self.base_url, headers=self.headers, timeout=30.0)
+
     def _convert_to_job_details(self, jsearch_job: JSearchJob) -> JobDetails:
         """Convert JSearch job to JobDetails model"""
         return JobDetails(
@@ -48,35 +52,31 @@ class JSearchVendor(JobSearchVendor):
             state=jsearch_job.job_state,
         )
 
-    def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
+    async def search_jobs(self, query: str, filters: Optional[Dict[str, Any]] = None) -> List[JobDetails]:
         """Search for jobs using JSearch API via RapidAPI"""
         try:
             search_params = SearchParams(query=query)
             if filters is not None:
                 search_params.country = filters.get("country")
 
-            # Make synchronous request
-            with httpx.Client() as client:
-                query_params = search_params.to_jsearch_params()
-                query_params.update({"date_posted": "all"})
-                # TODO: remove this
-                logging.info(f"Query params: {query_params}")
-                logging.info(f"Headers: {self.headers}")
-                logging.info(f"Base URL: {self.base_url}")
-                response = client.get(
-                    f"{self.base_url}/search",
-                    headers=self.headers,
-                    params=query_params,
-                    timeout=30.0,
-                )
-                response.raise_for_status()
+            # Prepare query parameters
+            query_params = search_params.to_jsearch_params()
+            query_params.update({"date_posted": "all"})
 
-                # Parse response
-                data = response.json()
-                search_response = SearchResponse(**data)
+            # TODO: remove this
+            logging.info(f"Query params: {query_params}")
+            logging.info(f"Headers: {self.headers}")
+            logging.info(f"Base URL: {self.base_url}")
 
-                # Return converted JobDetails
-                return [self._convert_to_job_details(job) for job in search_response.data]
+            # Make async request using HttpBaseClient
+            response = await self.http_client.get("/search", params=query_params)
+
+            # Parse response
+            data = response.json()
+            search_response = SearchResponse(**data)
+
+            # Return converted JobDetails
+            return [self._convert_to_job_details(job) for job in search_response.data]
 
         except httpx.HTTPStatusError as e:
             raise Exception(f"JSearch API error: {e.response.status_code} - {e.response.text}")
@@ -85,30 +85,24 @@ class JSearchVendor(JobSearchVendor):
         except Exception as e:
             raise Exception(f"JSearch API unexpected error: {str(e)}")
 
-    def get_job_details(self, job_id: str) -> JobDetails:
+    async def get_job_details(self, job_id: str) -> JobDetails:
         """Get detailed information about a specific job"""
         try:
-            with httpx.Client() as client:
-                params = {"job_id": job_id}
+            params = {"job_id": job_id}
 
-                response = client.get(
-                    f"{self.base_url}/job-details",
-                    headers=self.headers,
-                    params=params,
-                    timeout=30.0,
-                )
-                response.raise_for_status()
+            # Make async request using HttpBaseClient
+            response = await self.http_client.get("/job-details", params=params)
 
-                # Parse response
-                data = response.json()
+            # Parse response
+            data = response.json()
 
-                # Extract the first job from the response
-                if data.get("data") and len(data["data"]) > 0:
-                    job_data = data["data"][0]
-                    jsearch_job = JSearchJob(**job_data)
-                    return self._convert_to_job_details(jsearch_job)
-                else:
-                    raise Exception("Job not found")
+            # Extract the first job from the response
+            if data.get("data") and len(data["data"]) > 0:
+                job_data = data["data"][0]
+                jsearch_job = JSearchJob(**job_data)
+                return self._convert_to_job_details(jsearch_job)
+            else:
+                raise Exception("Job not found")
 
         except httpx.HTTPStatusError as e:
             raise Exception(f"JSearch API error: {e.response.status_code} - {e.response.text}")

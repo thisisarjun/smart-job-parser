@@ -1,5 +1,5 @@
 from typing import List
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -18,6 +18,7 @@ def sample_job_details() -> List[JobDetails]:
 def mock_vendor(sample_job_details) -> Mock:
     """Create a mock vendor for testing"""
     vendor = Mock(spec=JobSearchVendor)
-    vendor.search_jobs.return_value = sample_job_details
+    vendor.search_jobs = AsyncMock(return_value=sample_job_details)
+    vendor.get_job_details = AsyncMock(return_value=sample_job_details[0])
     vendor.get_vendor_name.return_value = "test_vendor"
     return vendor
