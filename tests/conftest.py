@@ -5,7 +5,6 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 
 from src.job_searcher.vendors.jsearch.vendor import JSearchVendor
-from src.text_processor.text_processor_service import TextProcessor
 
 
 @pytest.fixture
@@ -68,10 +67,3 @@ def mock_vector_store():
 def mock_pinecone():
     with patch("src.vector_store.stores.pinecone_store.Pinecone") as MockPinecone:
         yield MockPinecone
-
-
-@pytest.fixture
-def mock_text_processor(mock_ollama_class, mock_vector_store):
-    """Mock text processor for testing process_text function"""
-    text_processor = TextProcessor(mock_ollama_class, mock_vector_store)
-    return text_processor
